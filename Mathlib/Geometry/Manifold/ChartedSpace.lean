@@ -987,7 +987,7 @@ theorem StructureGroupoid.trans_restricted (he : e ∈ atlas H M) (he' : e' ∈ 
     [HasGroupoid M G] [ClosedUnderRestriction G] (s : Opens M) [Nonempty s] :
     (e.subtypeRestr s).symm ≫ₕ e'.subtypeRestr s ∈ G := by
   apply G.eq_on_source ?_ (e.subtypeRestr_symm_trans_subtypeRestr s e')
-  let hopen := e.preimage_open_of_open_symm s.2
+  let hopen := e.isOpen_inter_preimage_symm s.2
   refine G.locality fun x' hx' ↦ ⟨e.target ∩ e.symm ⁻¹' s, hopen, ?_, ?_ ⟩
   · exact interior_subset (mem_of_mem_inter_right hx')
   · exact closedUnderRestriction' (closedUnderRestriction' (G.compatible he he') hopen) hopen
@@ -1343,7 +1343,7 @@ def LocalHomeomorphism.toStructomorph (he : e ∈ atlas H M)
     let t : Opens H := { carrier := e.target, is_open' := e.open_target }
     Structomorph G s t := by
   intro s t
-  by_cases s = (∅ : Set M)
+  by_cases h : s = (∅ : Set M)
   · have : IsEmpty s := isEmpty_coe_sort.mpr h
     have : t = (∅ : Set H) := by
       show e.target = ∅
