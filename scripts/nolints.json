@@ -1364,7 +1364,7 @@
  ["docBlame", "CategoryTheory.MonoidalOpposite.«term_ᴹᵒᵖ»"],
  ["docBlame", "CategoryTheory.NoetherianObject.subobject_gt_wellFounded'"],
  ["docBlame", "CategoryTheory.Presieve.yonedaFamilyOfElements_fromCocone"],
- ["docBlame", "CategoryTheory.Pretopology.Transitive"],
+ ["docBlame", "CategoryTheory.Pretopology.transitive"],
  ["docBlame", "CategoryTheory.Pretopology.coverings"],
  ["docBlame", "CategoryTheory.Pretopology.has_isos"],
  ["docBlame", "CategoryTheory.Pretopology.pullbacks"],
