@@ -162,6 +162,9 @@ instance (priority := 100) addMonoidHomClass [SemilinearMapClass F σ M M₃] :
         rw [← zero_smul R (0 : M), map_smulₛₗ]
         simp }
 
+-- The following should go via SemilinearMapClass.addMonoidHomClass instead:
+attribute [instance 0] SemilinearMapClass.toAddHomClass
+
 instance (priority := 100) distribMulActionHomClass [LinearMapClass F R M M₂] :
     DistribMulActionHomClass F R M M₂ :=
   { SemilinearMapClass.addMonoidHomClass F with
