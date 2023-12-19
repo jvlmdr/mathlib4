@@ -184,21 +184,15 @@ lemma lapMatrix_ker_basis_aux_linearIndependent :
   rw [Fintype.linearIndependent_iff]
   intro g h0
   rw [Subtype.ext_iff] at h0
-  have h : ∑ c : ConnectedComponent G,
-      g c • lapMatrix_ker_basis_aux G c = fun i ↦ g (connectedComponentMk G i)
-  · unfold lapMatrix_ker_basis_aux
-    simp only [SetLike.mk_smul_mk, AddSubmonoid.coe_finset_sum]
-    conv => lhs; simp;
-    conv_lhs => arg 2; intro c; ext j; rw [Pi.smul_apply, smul_eq_mul, mul_ite, mul_one, mul_zero]
+  have h : ∑ c, g c • lapMatrix_ker_basis_aux G c = fun i ↦ g (connectedComponentMk G i)
+  · simp only [lapMatrix_ker_basis_aux, SetLike.mk_smul_mk, AddSubmonoid.coe_finset_sum]
+    conv_lhs => enter [2, c, j]; rw [Pi.smul_apply, smul_eq_mul, mul_ite, mul_one, mul_zero]
     ext i
     simp only [Finset.sum_apply, sum_ite_eq, mem_univ, ite_true]
   rw [h] at h0
   intro c
-  have he : ∃ i : V, G.connectedComponentMk i = c
-  · exact Quot.exists_rep c
-  obtain ⟨i, h'⟩ := he
-  rw [← h']
-  apply congrFun h0
+  obtain ⟨i, h'⟩ : ∃ i : V, G.connectedComponentMk i = c := Quot.exists_rep c
+  exact h' ▸ congrFun h0 i
 
 lemma lapMatrix_ker_basis_aux_spanning :
     ⊤ ≤ Submodule.span ℝ (Set.range (lapMatrix_ker_basis_aux G)) := by
@@ -206,12 +200,10 @@ lemma lapMatrix_ker_basis_aux_spanning :
   rw [mem_span_range_iff_exists_fun]
   use Quot.lift x.val (by rw [← ker_reachable_eq G x, LinearMap.map_coe_ker])
   ext j
-  simp only [AddSubmonoid.coe_finset_sum, Submodule.coe_toAddSubmonoid, SetLike.val_smul,
-    Finset.sum_apply, Pi.smul_apply, smul_eq_mul]
-  unfold lapMatrix_ker_basis_aux
-  simp only [mul_ite, mul_one, mul_zero, sum_ite_eq, mem_univ, ite_true]
-  unfold connectedComponentMk
-  simp only [Quotient.lift_mk]
+  simp only [lapMatrix_ker_basis_aux, AddSubmonoid.coe_finset_sum, Submodule.coe_toAddSubmonoid,
+    SetLike.val_smul, Finset.sum_apply, Pi.smul_apply, smul_eq_mul, mul_ite, mul_one, mul_zero,
+    sum_ite_eq, mem_univ, ite_true]
+  rfl
 
 /-- `lapMatrix_ker_basis G` is a basis of the nullspace indexed by its connected components,
   the basis is made up of the functions `V → ℝ` which are `1` on the vertices of the given
