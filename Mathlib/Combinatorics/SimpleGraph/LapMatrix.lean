@@ -65,16 +65,6 @@ theorem sum_adj_eq_degree [AddCommMonoidWithOne α] (i : V) :
   unfold degree neighborFinset neighborSet
   rw [sum_boole, Set.toFinset_setOf]
 
-theorem ite_sub_ite {α : Type*} [Sub α] (P : Prop) [Decidable P] (a b c d : α) :
-    ((if P then a else b) - if P then c else d) = if P then a - c else b - d := by
-  split
-  repeat rfl
-
-theorem ite_add_ite {α : Type*} [Add α] (P : Prop) [Decidable P] (a b c d : α) :
-    ((if P then a else b) + if P then c else d) = if P then a + c else b + d := by
-  split
-  repeat rfl
-
 /-- Let $L$ be the graph Laplacian and let $x \in \mathbb{R}$, then
  $$x^{\top} L x = \sum_{i \sim j} (x_{i}-x_{j})^{2}$$
  where $\sim$ denotes the adjacency relation -/
