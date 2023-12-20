@@ -57,6 +57,8 @@ theorem invOf_ι_mul_ι_mul_ι (a b : M) [Invertible (ι Q a)] [Invertible (Q a)
 section
 variable [Invertible (2 : R)]
 
+-- HACK for a long failing search
+set_option synthInstance.maxHeartbeats 80000 in
 /-- Over a ring where `2` is invertible, `Q m` is invertible whenever `ι Q m`. -/
 def invertibleOfInvertibleι (m : M) [Invertible (ι Q m)] : Invertible (Q m) :=
   ExteriorAlgebra.invertibleAlgebraMapEquiv M (Q m) <|

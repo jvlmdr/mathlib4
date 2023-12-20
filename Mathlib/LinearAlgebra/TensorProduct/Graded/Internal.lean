@@ -191,7 +191,8 @@ theorem tmul_coe_mul_coe_tmul {j₁ i₂ : ι} (a₁ : A) (b₁ : ℬ j₁) (a�
   rw [tmul_of_gradedMul_of_tmul]
   simp_rw [lof_eq_of R]
   rw [LinearEquiv.symm_symm]
-  rw [@Units.smul_def _ _ (_) (_), zsmul_eq_smul_cast R, map_smul, map_smul,
+  -- HACK to avoid timeout: specialize `map_smul`
+  rw [@Units.smul_def _ _ (_) (_), zsmul_eq_smul_cast R, LinearEquiv.map_smul, LinearEquiv.map_smul,
     ← zsmul_eq_smul_cast R, ← @Units.smul_def _ _ (_) (_)]
   rw [congr_symm_tmul]
   dsimp
@@ -252,7 +253,8 @@ instance instAlgebra : Algebra R (𝒜 ᵍ⊗[R] ℬ) where
   smul_def' r x := by
     dsimp [mul_def, mulHom_apply, auxEquiv_tmul]
     simp_rw [DirectSum.decompose_algebraMap, DirectSum.decompose_one, algebraMap_gradedMul,
-      map_smul, LinearEquiv.symm_apply_apply]
+      -- HACK to avoid timeout: specialize `map_smul`
+      LinearEquiv.map_smul, LinearEquiv.symm_apply_apply]
 
 lemma algebraMap_def (r : R) : algebraMap R (𝒜 ᵍ⊗[R] ℬ) r = algebraMap R A r ᵍ⊗ₜ[R] 1 := rfl
 
@@ -374,7 +376,8 @@ def comm : (𝒜 ᵍ⊗[R] ℬ) ≃ₐ[R] (ℬ ᵍ⊗[R] 𝒜) :=
     comm 𝒜 ℬ (a ᵍ⊗ₜ b) = (-1 : ℤˣ)^(j * i) • (b ᵍ⊗ₜ a : ℬ ᵍ⊗[R] 𝒜) :=
   (auxEquiv R ℬ 𝒜).injective <| by
     simp_rw [auxEquiv_comm, auxEquiv_tmul, decompose_coe, ← lof_eq_of R, gradedComm_of_tmul_of,
-      @Units.smul_def _ _ (_) (_), zsmul_eq_smul_cast R, map_smul, auxEquiv_tmul, decompose_coe,
-      lof_eq_of]
+      -- HACK to avoid timeout: specialize `map_smul`
+      @Units.smul_def _ _ (_) (_), zsmul_eq_smul_cast R, LinearEquiv.map_smul, auxEquiv_tmul,
+      decompose_coe, lof_eq_of]
 
 end GradedTensorProduct

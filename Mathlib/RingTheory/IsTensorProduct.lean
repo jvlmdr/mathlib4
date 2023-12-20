@@ -231,6 +231,8 @@ theorem TensorProduct.isBaseChange : IsBaseChange S (TensorProduct.mk R S M 1) :
 
 variable {R M N S}
 
+-- HACK for `map_mul` timing out
+set_option synthInstance.maxHeartbeats 30000 in
 /-- The base change of `M` along `R → S` is linearly equivalent to `S ⊗[R] M`. -/
 noncomputable nonrec def IsBaseChange.equiv : S ⊗[R] M ≃ₗ[S] N :=
   { h.equiv with

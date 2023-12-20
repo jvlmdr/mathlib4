@@ -77,6 +77,8 @@ theorem Basis.parallelepiped_basisFun (ι : Type*) [Fintype ι] :
     · exact zero_le_one
 #align basis.parallelepiped_basis_fun Basis.parallelepiped_basisFun
 
+-- HACK for synthesis timing out
+set_option synthInstance.maxHeartbeats 30000 in
 /-- A parallelepiped can be expressed on the standard basis. -/
 theorem Basis.parallelepiped_eq_map  {ι E : Type*} [Fintype ι] [NormedAddCommGroup E]
     [NormedSpace ℝ E] (b : Basis ι ℝ E) :
