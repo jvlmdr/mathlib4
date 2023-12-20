@@ -10,8 +10,9 @@ import Mathlib.Algebra.Module.LinearMap
 # The `ZMod n`-module structure on Abelian groups whose elements have order dividing `n`
 -/
 
-variable {n : ℕ} {M M₁ F S : Type*} [AddCommGroup M] [AddCommGroup M₁] [AddMonoidHomClass F M M₁]
-  [Module (ZMod n) M] [Module (ZMod n) M₁] [SetLike S M] [AddSubgroupClass S M] {x : M} {K : S}
+variable {n : ℕ} {M M₁ F S : Type*} [AddCommGroup M] [AddCommGroup M₁] [NDFunLike F M M₁]
+  [AddMonoidHomClass F M M₁] [Module (ZMod n) M] [Module (ZMod n) M₁]
+  [SetLike S M] [AddSubgroupClass S M] {x : M} {K : S}
 
 namespace ZMod
 
