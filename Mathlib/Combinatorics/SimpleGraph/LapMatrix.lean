@@ -78,7 +78,8 @@ theorem ite_add_ite {α : Type*} [Add α] (P : Prop) [Decidable P] (a b c d : α
 /-- Let $L$ be the graph Laplacian and let $x \in \mathbb{R}$, then
  $$x^{\top} L x = \sum_{i \sim j} (x_{i}-x_{j})^{2}$$
  where $\sim$ denotes the adjacency relation -/
-theorem lapMatrix_toLinearMap₂' [Field α] [CharZero α] (x : V → α) : toLinearMap₂' (G.lapMatrix α) x x =
+theorem lapMatrix_toLinearMap₂' [Field α] [CharZero α] (x : V → α) :
+    toLinearMap₂' (G.lapMatrix α) x x =
     (∑ i : V, ∑ j : V, if G.Adj i j then (x i - x j)^2 else 0) / 2 := by
   rw [toLinearMap₂'_apply']
   unfold lapMatrix
@@ -87,7 +88,7 @@ theorem lapMatrix_toLinearMap₂' [Field α] [CharZero α] (x : V → α) : toLi
   rw [dotProduct_mulVec_degMatrix, dotProduct_mulVec_adjMatrix, ← sum_sub_distrib]
   simp only [sum_adj_eq_degree, sum_mul, ← sum_sub_distrib, ite_mul, one_mul,
              zero_mul, ite_sub_ite, sub_zero]
-  rw [←half_add_self (∑ x_1 : V, ∑ x_2 : V, _)]
+  rw [← half_add_self (∑ x_1 : V, ∑ x_2 : V, _)]
   conv_lhs => arg 1; arg 2; arg 2; intro i; arg 2; intro j; rw [if_congr (adj_comm G i j) rfl rfl]
   conv_lhs => arg 1; arg 2; rw [Finset.sum_comm]
   simp_rw [← sum_add_distrib, ite_add_ite]
