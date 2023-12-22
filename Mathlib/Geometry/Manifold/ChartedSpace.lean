@@ -1332,17 +1332,18 @@ theorem StructureGroupoid.restriction_chart (he : e ∈ atlas H M) (hs : Set.Non
     [HasGroupoid M G] [ClosedUnderRestriction G] :
     let s := { carrier := e.source, is_open' := e.open_source : Opens M };
     let t := { carrier := e.target, is_open' := e.open_target  : Opens H };
-    ∀ c' ∈ atlas H t, (e.toHomeomorphSourceTarget).toPartialHomeomorph ≫ₕ c' ∈ G.maximalAtlas s := by
+    ∀ c' ∈ atlas H t,
+      (e.toHomeomorphSourceTarget).toPartialHomeomorph ≫ₕ c' ∈ G.maximalAtlas s := by
   intro s t c' hc'
   have : Nonempty s := nonempty_coe_sort.mpr hs
-  have : Nonempty t := nonempty_coe_sort.mpr (MapsTo.nonempty e.mapsTo hs)
+  have : Nonempty t := nonempty_coe_sort.mpr (e.mapsTo.nonempty hs)
   -- Choose `x ∈ t` so `c'` is the restriction of `chartAt H x`.
   obtain ⟨x, hc'⟩ := Opens.chart_eq' hc'
   -- As H has only one chart, `chartAt H x` is the identity: i.e., `c'` is the inclusion.
   rw [hc', (chartAt_self_eq)]
   -- Argue that our expression equals this chart above, at least on its source.
   rw [PartialHomeomorph.subtypeRestr_def, PartialHomeomorph.trans_refl]
-  set goal := (e.toHomeomorphSourceTarget.toPartialHomeomorph ≫ₕ t.partialHomeomorphSubtypeCoe)
+  let goal := (e.toHomeomorphSourceTarget.toPartialHomeomorph ≫ₕ t.partialHomeomorphSubtypeCoe)
   have : goal ≈ e.subtypeRestr s :=
     (goal.eqOnSource_iff (e.subtypeRestr s)).mpr ⟨by simp, by intro _ _; rfl⟩
   exact G.mem_maximalAtlas_of_eqOnSource (M := s) this (G.restriction_in_maximalAtlas he)
