@@ -1048,7 +1048,7 @@ theorem StructureGroupoid.compatible_of_mem_maximalAtlas {e e' : PartialHomeomor
   exact G.eq_on_source C (Setoid.symm D)
 #align structure_groupoid.compatible_of_mem_maximal_atlas StructureGroupoid.compatible_of_mem_maximalAtlas
 
-open LocalHomeomorph in
+open PartialHomeomorph in
 /-- The maximal atlas of a structure groupoid is stable under equivalence. -/
 lemma StructureGroupoid.mem_maximalAtlas_of_eqOnSource (h : e' ≈ e)
     (he : e ∈ G.maximalAtlas M) : e' ∈ G.maximalAtlas M := by
@@ -1169,19 +1169,19 @@ protected instance instChartedSpace : ChartedSpace H s where
 
 /-- If `s` is a non-empty open subset of `M`, every chart of `s` is the restriction
  of some chart on `M`. -/
-lemma chart_eq {s : Opens M} [Nonempty s] {e : LocalHomeomorph s H} (he : e ∈ atlas H s) :
+lemma chart_eq {s : Opens M} [Nonempty s] {e : PartialHomeomorph s H} (he : e ∈ atlas H s) :
     ∃ x : s, e = (chartAt H (x : M)).subtypeRestr s := by
   rcases he with ⟨xset, ⟨x, hx⟩, he⟩
-  have : {LocalHomeomorph.subtypeRestr (chartAt H ↑x) s} = xset := hx
+  have : {PartialHomeomorph.subtypeRestr (chartAt H ↑x) s} = xset := hx
   exact ⟨x, mem_singleton_iff.mp (this ▸ he)⟩
 
 /-- If `t` is a non-empty open subset of `H`,
   every chart of `t` is the restriction of some chart on `H`. -/
 -- XXX: can I unify this with `chart_eq`?
-lemma chart_eq' {t : Opens H} [Nonempty t] {e' : LocalHomeomorph t H} (he' : e' ∈ atlas H t) :
+lemma chart_eq' {t : Opens H} [Nonempty t] {e' : PartialHomeomorph t H} (he' : e' ∈ atlas H t) :
     ∃ x : t, e' = (chartAt H ↑x).subtypeRestr t := by
   rcases he' with ⟨xset, ⟨x, hx⟩, he'⟩
-  have : {LocalHomeomorph.subtypeRestr (chartAt H ↑x) t} = xset := hx
+  have : {PartialHomeomorph.subtypeRestr (chartAt H ↑x) t} = xset := hx
   exact ⟨x, mem_singleton_iff.mp (this ▸ he')⟩
 
 /-- If a groupoid `G` is `ClosedUnderRestriction`, then an open subset of a space which is
@@ -1332,23 +1332,23 @@ theorem StructureGroupoid.restriction_chart (he : e ∈ atlas H M) (hs : Set.Non
     [HasGroupoid M G] [ClosedUnderRestriction G] :
     let s := { carrier := e.source, is_open' := e.open_source : Opens M };
     let t := { carrier := e.target, is_open' := e.open_target  : Opens H };
-    ∀ c' ∈ atlas H t, (e.toHomeomorphSourceTarget).toLocalHomeomorph ≫ₕ c' ∈ G.maximalAtlas s := by
+    ∀ c' ∈ atlas H t, (e.toHomeomorphSourceTarget).toPartialHomeomorph ≫ₕ c' ∈ G.maximalAtlas s := by
   intro s t c' hc'
   have : Nonempty s := nonempty_coe_sort.mpr hs
-  have : Nonempty t := nonempty_coe_sort.mpr (MapsTo.map_nonempty e.mapsTo hs)
+  have : Nonempty t := nonempty_coe_sort.mpr (MapsTo.nonempty e.mapsTo hs)
   -- Choose `x ∈ t` so `c'` is the restriction of `chartAt H x`.
   obtain ⟨x, hc'⟩ := Opens.chart_eq' hc'
   -- As H has only one chart, `chartAt H x` is the identity: i.e., `c'` is the inclusion.
   rw [hc', (chartAt_self_eq)]
   -- Argue that our expression equals this chart above, at least on its source.
-  rw [LocalHomeomorph.subtypeRestr_def, LocalHomeomorph.trans_refl]
-  set goal := (e.toHomeomorphSourceTarget.toLocalHomeomorph ≫ₕ t.localHomeomorphSubtypeCoe)
+  rw [PartialHomeomorph.subtypeRestr_def, PartialHomeomorph.trans_refl]
+  set goal := (e.toHomeomorphSourceTarget.toPartialHomeomorph ≫ₕ t.localHomeomorphSubtypeCoe)
   have : goal ≈ e.subtypeRestr s :=
     (goal.eqOnSource_iff (e.subtypeRestr s)).mpr ⟨by simp, by intro _ _; rfl⟩
   exact G.mem_maximalAtlas_of_eqOnSource (M := s) this (G.restriction_in_maximalAtlas he)
 
 /-- Each chart of a charted space is a structomorphism between its source and target. -/
-def LocalHomeomorphism.toStructomorph (he : e ∈ atlas H M)
+def PartialHomeomorph.toStructomorph (he : e ∈ atlas H M)
     [HasGroupoid M G] [ClosedUnderRestriction G] :
     let s : Opens M := { carrier := e.source, is_open' := e.open_source }
     let t : Opens H := { carrier := e.target, is_open' := e.open_target }
@@ -1369,7 +1369,7 @@ def LocalHomeomorphism.toStructomorph (he : e ∈ atlas H M)
       e.toHomeomorphSourceTarget with
       mem_groupoid := by
         intro c c' hc hc'
-        show (c.symm).trans (e.toHomeomorphSourceTarget.toLocalHomeomorph.trans c') ∈ G
+        show (c.symm).trans (e.toHomeomorphSourceTarget.toPartialHomeomorph.trans c') ∈ G
         -- The atlas of H on itself has only one chart, hence c' is the inclusion.
         -- Then, compatibility of `G` *almost* yields our claim --- except that `e` is a chart
         -- on `M` and `c` is one on `s`: we need to show that restricting `e` to `s` and composing
