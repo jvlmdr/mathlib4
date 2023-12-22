@@ -40,8 +40,7 @@ namespace Finset
 variable {s t : Finset α} {a b : α}
 
 /-- `s.card` is the number of elements of `s`, aka its cardinality. -/
-def card (s : Finset α) : ℕ :=
-  Multiset.card s.1
+@[pp_dot] def card (s : Finset α) : ℕ := Multiset.card s.1
 #align finset.card Finset.card
 
 theorem card_def (s : Finset α) : s.card = Multiset.card s.1 :=
@@ -78,7 +77,10 @@ theorem card_pos : 0 < s.card ↔ s.Nonempty :=
   pos_iff_ne_zero.trans <| (not_congr card_eq_zero).trans nonempty_iff_ne_empty.symm
 #align finset.card_pos Finset.card_pos
 
-alias ⟨_, Nonempty.card_pos⟩ := card_pos
+@[simp] lemma one_le_card : 1 ≤ s.card ↔ s.Nonempty := card_pos
+
+protected alias ⟨_, Nonempty.card_pos⟩ := card_pos
+protected alias ⟨_, Nonempty.one_le_card⟩ := one_le_card
 #align finset.nonempty.card_pos Finset.Nonempty.card_pos
 
 theorem card_ne_zero_of_mem (h : a ∈ s) : s.card ≠ 0 :=
@@ -462,6 +464,9 @@ theorem card_sdiff (h : s ⊆ t) : card (t \ s) = t.card - s.card := by
 theorem card_sdiff_add_card_eq_card {s t : Finset α} (h : s ⊆ t) : card (t \ s) + card s = card t :=
   ((Nat.sub_eq_iff_eq_add (card_le_of_subset h)).mp (card_sdiff h).symm).symm
 #align finset.card_sdiff_add_card_eq_card Finset.card_sdiff_add_card_eq_card
+
+lemma cast_card_sdiff [AddGroupWithOne β] (h : s ⊆ t) : ((t \ s).card : β) = t.card - s.card := by
+  rw [card_sdiff h, Nat.cast_sub (card_mono h)]
 
 theorem le_card_sdiff (s t : Finset α) : t.card - s.card ≤ card (t \ s) :=
   calc
