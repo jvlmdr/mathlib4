@@ -25,7 +25,7 @@ The file does not contain any lemmas except for
 
 For basic lemmas about these classes see `Algebra.Group.Basic`.
 
-We also introduce notation classes `lul` and `VAdd` for multiplicative and additive
+We also introduce notation classes `SMul` and `VAdd` for multiplicative and additive
 actions and register the following instances:
 
 - `Pow M ℕ`, for monoids `M`, and `Pow G ℤ` for groups `G`;
