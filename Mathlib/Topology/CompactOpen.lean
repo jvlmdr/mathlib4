@@ -101,11 +101,13 @@ lemma eventually_mapsTo {f : C(X, Y)} {K U} (hK : IsCompact K) (hU : IsOpen U) (
 lemma tendsto_nhds_compactOpen {α : Type*} {l : Filter α} {f : α → C(Y, Z)} {g : C(Y, Z)} :
     Tendsto f l (𝓝 g) ↔
       ∀ K, IsCompact K → ∀ U, IsOpen U → MapsTo g K U → ∀ᶠ a in l, MapsTo (f a) K U := by
-  simp_rw [compactOpen_eq, tendsto_nhds_generateFrom_iff, forall_image2_iff, mapsTo']; rfl
+  simp_rw [compactOpen_eq, tendsto_nhds_generateFrom_iff, forall_image2_iff, mapsTo',
+    CompactOpen.gen, image_subset_iff, preimage_setOf_eq, eventually_iff, mem_setOf]
 
 lemma continuous_compactOpen {f : X → C(Y, Z)} :
     Continuous f ↔ ∀ K, IsCompact K → ∀ U, IsOpen U → IsOpen {x | MapsTo (f x) K U} := by
-  simp_rw [compactOpen_eq, continuous_generateFrom_iff, forall_image2_iff, mapsTo']; rfl
+  simp_rw [compactOpen_eq, continuous_generateFrom_iff, forall_image2_iff, mapsTo',
+    CompactOpen.gen, image_subset_iff, preimage_setOf_eq, mem_setOf]
 
 section Functorial
 
@@ -114,8 +116,7 @@ variable (g : C(Y, Z))
 private theorem preimage_gen {s : Set X} {u : Set Z} :
     ContinuousMap.comp g ⁻¹' CompactOpen.gen s u = CompactOpen.gen s (g ⁻¹' u) := by
   ext ⟨f, _⟩
-  change g ∘ f '' s ⊆ u ↔ f '' s ⊆ g ⁻¹' u
-  rw [image_comp, image_subset_iff]
+  simp [CompactOpen.gen, preimage_comp]
 
 /-- C(X, -) is a functor. -/
 theorem continuous_comp : Continuous (ContinuousMap.comp g : C(X, Y) → C(X, Z)) :=
@@ -140,8 +141,7 @@ variable (f : C(X, Y))
 private theorem image_gen {s : Set X} (_ : IsCompact s) {u : Set Z} (_ : IsOpen u) :
     (fun g : C(Y, Z) => g.comp f) ⁻¹' CompactOpen.gen s u = CompactOpen.gen (f '' s) u := by
   ext ⟨g, _⟩
-  change g ∘ f '' s ⊆ u ↔ g '' (f '' s) ⊆ u
-  rw [Set.image_comp]
+  simp [CompactOpen.gen, preimage_comp]
 
 /-- C(-, Z) is a functor. -/
 theorem continuous_comp_left : Continuous (fun g => g.comp f : C(Y, Z) → C(X, Z)) :=
