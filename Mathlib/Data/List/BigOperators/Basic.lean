@@ -13,7 +13,7 @@ import Mathlib.Data.List.Forall2
 # Sums and products from lists
 
 This file provides basic results about `List.prod`, `List.sum`, which calculate the product and sum
-of elements of a list and `List.alternating_prod`, `List.alternating_sum`, their alternating
+of elements of a list and `List.alternatingProd`, `List.alternatingSum`, their alternating
 counterparts. These are defined in [`Data.List.BigOperators.Defs`](./Defs).
 -/
 
