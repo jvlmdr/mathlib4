@@ -49,7 +49,7 @@ open Set Filter Function
 
 open TopologicalSpace Topology Filter
 
-variable {X : Type*} {Y : Type*} {γ : Type*}
+variable {X : Type*} {Y : Type*} {Z : Type*}
 
 section Inducing
 
@@ -63,7 +63,7 @@ structure Inducing [tX : TopologicalSpace X] [tY : TopologicalSpace Y] (f : X �
 #align inducing Inducing
 #align inducing_iff inducing_iff
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
 
 theorem inducing_induced (f : X → Y) : @Inducing X Y (TopologicalSpace.induced f ‹_›) _ f :=
   @Inducing.mk _ _ (TopologicalSpace.induced f ‹_›) _ _ rfl
@@ -72,12 +72,12 @@ theorem inducing_id : Inducing (@id X) :=
   ⟨induced_id.symm⟩
 #align inducing_id inducing_id
 
-protected theorem Inducing.comp {g : Y → γ} {f : X → Y} (hg : Inducing g) (hf : Inducing f) :
+protected theorem Inducing.comp {g : Y → Z} {f : X → Y} (hg : Inducing g) (hf : Inducing f) :
     Inducing (g ∘ f) :=
   ⟨by rw [hf.induced, hg.induced, induced_compose]⟩
 #align inducing.comp Inducing.comp
 
-theorem inducing_of_inducing_compose {f : X → Y} {g : Y → γ} (hf : Continuous f) (hg : Continuous g)
+theorem inducing_of_inducing_compose {f : X → Y} {g : Y → Z} (hf : Continuous f) (hg : Continuous g)
     (hgf : Inducing (g ∘ f)) : Inducing f :=
   ⟨le_antisymm (by rwa [← continuous_iff_le_induced])
       (by
@@ -118,22 +118,22 @@ theorem Inducing.image_mem_nhdsWithin {f : X → Y} (hf : Inducing f) {a : X} {s
   hf.map_nhds_eq a ▸ image_mem_map hs
 #align inducing.image_mem_nhds_within Inducing.image_mem_nhdsWithin
 
-theorem Inducing.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → γ} {a : Filter ι} {b : Y}
+theorem Inducing.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
     (hg : Inducing g) : Tendsto f a (𝓝 b) ↔ Tendsto (g ∘ f) a (𝓝 (g b)) := by
   rw [hg.nhds_eq_comap, tendsto_comap_iff]
 #align inducing.tendsto_nhds_iff Inducing.tendsto_nhds_iff
 
-theorem Inducing.continuousAt_iff {f : X → Y} {g : Y → γ} (hg : Inducing g) {x : X} :
+theorem Inducing.continuousAt_iff {f : X → Y} {g : Y → Z} (hg : Inducing g) {x : X} :
     ContinuousAt f x ↔ ContinuousAt (g ∘ f) x :=
   hg.tendsto_nhds_iff
 #align inducing.continuous_at_iff Inducing.continuousAt_iff
 
-theorem Inducing.continuous_iff {f : X → Y} {g : Y → γ} (hg : Inducing g) :
+theorem Inducing.continuous_iff {f : X → Y} {g : Y → Z} (hg : Inducing g) :
     Continuous f ↔ Continuous (g ∘ f) := by
   simp_rw [continuous_iff_continuousAt, hg.continuousAt_iff]
 #align inducing.continuous_iff Inducing.continuous_iff
 
-theorem Inducing.continuousAt_iff' {f : X → Y} {g : Y → γ} (hf : Inducing f) {x : X}
+theorem Inducing.continuousAt_iff' {f : X → Y} {g : Y → Z} (hf : Inducing f) {x : X}
     (h : range f ∈ 𝓝 (f x)) : ContinuousAt (g ∘ f) x ↔ ContinuousAt g (f x) := by
   simp_rw [ContinuousAt, Filter.Tendsto, ← hf.map_nhds_of_mem _ h, Filter.map_map, comp]
 #align inducing.continuous_at_iff' Inducing.continuousAt_iff'
@@ -142,7 +142,7 @@ protected theorem Inducing.continuous {f : X → Y} (hf : Inducing f) : Continuo
   hf.continuous_iff.mp continuous_id
 #align inducing.continuous Inducing.continuous
 
-protected theorem Inducing.inducing_iff {f : X → Y} {g : Y → γ} (hg : Inducing g) :
+protected theorem Inducing.inducing_iff {f : X → Y} {g : Y → Z} (hg : Inducing g) :
     Inducing f ↔ Inducing (g ∘ f) := by
   refine' ⟨fun h => hg.comp h, fun hgf => inducing_of_inducing_compose _ hg.continuous hgf⟩
   rw [hg.continuous_iff]
@@ -200,7 +200,7 @@ theorem Function.Injective.embedding_induced [t : TopologicalSpace Y] {f : X →
   @_root_.Embedding.mk X Y (t.induced f) t _ (inducing_induced f) hf
 #align function.injective.embedding_induced Function.Injective.embedding_induced
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
 
 theorem Embedding.mk' (f : X → Y) (inj : Injective f) (induced : ∀ a, comap f (𝓝 (f a)) = 𝓝 a) :
     Embedding f :=
@@ -211,12 +211,12 @@ theorem embedding_id : Embedding (@id X) :=
   ⟨inducing_id, fun _ _ h => h⟩
 #align embedding_id embedding_id
 
-protected theorem Embedding.comp {g : Y → γ} {f : X → Y} (hg : Embedding g) (hf : Embedding f) :
+protected theorem Embedding.comp {g : Y → Z} {f : X → Y} (hg : Embedding g) (hf : Embedding f) :
     Embedding (g ∘ f) :=
   { hg.toInducing.comp hf.toInducing with inj := fun _ _ h => hf.inj <| hg.inj h }
 #align embedding.comp Embedding.comp
 
-theorem embedding_of_embedding_compose {f : X → Y} {g : Y → γ} (hf : Continuous f)
+theorem embedding_of_embedding_compose {f : X → Y} {g : Y → Z} (hf : Continuous f)
     (hg : Continuous g) (hgf : Embedding (g ∘ f)) : Embedding f :=
   { induced := (inducing_of_inducing_compose hf hg hgf.toInducing).induced
     inj := fun a₁ a₂ h => hgf.inj <| by simp [h, (· ∘ ·)] }
@@ -237,12 +237,12 @@ theorem Embedding.map_nhds_of_mem {f : X → Y} (hf : Embedding f) (a : X) (h : 
   hf.1.map_nhds_of_mem a h
 #align embedding.map_nhds_of_mem Embedding.map_nhds_of_mem
 
-theorem Embedding.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → γ} {a : Filter ι} {b : Y}
+theorem Embedding.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
     (hg : Embedding g) : Tendsto f a (𝓝 b) ↔ Tendsto (g ∘ f) a (𝓝 (g b)) :=
   hg.toInducing.tendsto_nhds_iff
 #align embedding.tendsto_nhds_iff Embedding.tendsto_nhds_iff
 
-theorem Embedding.continuous_iff {f : X → Y} {g : Y → γ} (hg : Embedding g) :
+theorem Embedding.continuous_iff {f : X → Y} {g : Y → Z} (hg : Embedding g) :
     Continuous f ↔ Continuous (g ∘ f) :=
   Inducing.continuous_iff hg.1
 #align embedding.continuous_iff Embedding.continuous_iff
@@ -275,8 +275,8 @@ def QuotientMap {X : Type*} {Y : Type*} [tX : TopologicalSpace X] [tY : Topologi
   Surjective f ∧ tY = tX.coinduced f
 #align quotient_map QuotientMap
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
-  {g : Y → γ} {f : X → Y}
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
+  {g : Y → Z} {f : X → Y}
 
 theorem quotientMap_iff : QuotientMap f ↔ Surjective f ∧ ∀ s : Set Y, IsOpen s ↔ IsOpen (f ⁻¹' s) :=
   and_congr Iff.rfl TopologicalSpace.ext_iff
@@ -343,14 +343,14 @@ def IsOpenMap [TopologicalSpace X] [TopologicalSpace Y] (f : X → Y) :=
   ∀ U : Set X, IsOpen U → IsOpen (f '' U)
 #align is_open_map IsOpenMap
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ] {f : X → Y}
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z] {f : X → Y}
 
 namespace IsOpenMap
 
 protected theorem id : IsOpenMap (@id X) := fun s hs => by rwa [image_id]
 #align is_open_map.id IsOpenMap.id
 
-protected theorem comp {g : Y → γ} (hg : IsOpenMap g) (hf : IsOpenMap f) :
+protected theorem comp {g : Y → Z} (hg : IsOpenMap g) (hf : IsOpenMap f) :
     IsOpenMap (g ∘ f) := fun s hs => by rw [image_comp]; exact hg _ (hf _ hs)
 #align is_open_map.comp IsOpenMap.comp
 
@@ -467,7 +467,7 @@ end OpenMap
 
 section IsClosedMap
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
 
 /-- A map `f : X → Y` is said to be a *closed map*, if the image of any closed `U : Set X`
 is closed in `Y`. -/
@@ -483,7 +483,7 @@ open Function
 protected theorem id : IsClosedMap (@id X) := fun s hs => by rwa [image_id]
 #align is_closed_map.id IsClosedMap.id
 
-protected theorem comp {g : Y → γ} (hg : IsClosedMap g) (hf : IsClosedMap f) :
+protected theorem comp {g : Y → Z} (hg : IsClosedMap g) (hf : IsClosedMap f) :
     IsClosedMap (g ∘ f) := by
   intro s hs
   rw [image_comp]
@@ -568,7 +568,7 @@ end IsClosedMap
 
 section OpenEmbedding
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
 
 /-- An open embedding is an embedding with open image. -/
 @[mk_iff openEmbedding_iff]
@@ -578,7 +578,7 @@ structure OpenEmbedding (f : X → Y) extends Embedding f : Prop where
 #align open_embedding OpenEmbedding
 #align open_embedding_iff openEmbedding_iff
 
-variable {f : X → Y} {g : Y → γ}
+variable {f : X → Y} {g : Y → Z}
 
 theorem OpenEmbedding.isOpenMap (hf : OpenEmbedding f) : IsOpenMap f :=
   hf.toEmbedding.toInducing.isOpenMap hf.open_range
@@ -596,16 +596,16 @@ theorem OpenEmbedding.open_iff_image_open (hf : OpenEmbedding f) {s : Set X} :
     apply preimage_image_eq _ hf.inj⟩
 #align open_embedding.open_iff_image_open OpenEmbedding.open_iff_image_open
 
-theorem OpenEmbedding.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → γ} {a : Filter ι} {b : Y}
+theorem OpenEmbedding.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
     (hg : OpenEmbedding g) : Tendsto f a (𝓝 b) ↔ Tendsto (g ∘ f) a (𝓝 (g b)) :=
   hg.toEmbedding.tendsto_nhds_iff
 #align open_embedding.tendsto_nhds_iff OpenEmbedding.tendsto_nhds_iff
 
-theorem OpenEmbedding.tendsto_nhds_iff' (hf : OpenEmbedding f) {g : Y → γ}
-    {l : Filter γ} {a : X} : Tendsto (g ∘ f) (𝓝 a) l ↔ Tendsto g (𝓝 (f a)) l := by
+theorem OpenEmbedding.tendsto_nhds_iff' (hf : OpenEmbedding f) {g : Y → Z}
+    {l : Filter Z} {a : X} : Tendsto (g ∘ f) (𝓝 a) l ↔ Tendsto g (𝓝 (f a)) l := by
   rw [Tendsto, ← map_map, hf.map_nhds_eq]; rfl
 
-theorem OpenEmbedding.continuousAt_iff (hf : OpenEmbedding f) {g : Y → γ} {x : X} :
+theorem OpenEmbedding.continuousAt_iff (hf : OpenEmbedding f) {g : Y → Z} {x : X} :
     ContinuousAt (g ∘ f) x ↔ ContinuousAt g (f x) :=
   hf.tendsto_nhds_iff'
 #align open_embedding.continuous_at_iff OpenEmbedding.continuousAt_iff
@@ -680,7 +680,7 @@ end OpenEmbedding
 
 section ClosedEmbedding
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
 
 /-- A closed embedding is an embedding with closed image. -/
 @[mk_iff closedEmbedding_iff]
@@ -690,7 +690,7 @@ structure ClosedEmbedding (f : X → Y) extends Embedding f : Prop where
 #align closed_embedding ClosedEmbedding
 #align closed_embedding_iff closedEmbedding_iff
 
-variable {f : X → Y} {g : Y → γ}
+variable {f : X → Y} {g : Y → Z}
 
 namespace ClosedEmbedding
 
