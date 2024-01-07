@@ -351,7 +351,7 @@ namespace IsOpenMap
 protected theorem id : IsOpenMap (@id X) := fun s hs => by rwa [image_id]
 #align is_open_map.id IsOpenMap.id
 
-protected theorem comp {g : Y → Z} (hg : IsOpenMap g) (hf : IsOpenMap f) :
+protected theorem comp (hg : IsOpenMap g) (hf : IsOpenMap f) :
     IsOpenMap (g ∘ f) := fun s hs => by rw [image_comp]; exact hg _ (hf _ hs)
 #align is_open_map.comp IsOpenMap.comp
 
@@ -482,7 +482,7 @@ open Function
 protected theorem id : IsClosedMap (@id X) := fun s hs => by rwa [image_id]
 #align is_closed_map.id IsClosedMap.id
 
-protected theorem comp {g : Y → Z} (hg : IsClosedMap g) (hf : IsClosedMap f) :
+protected theorem comp (hg : IsClosedMap g) (hf : IsClosedMap f) :
     IsClosedMap (g ∘ f) := by
   intro s hs
   rw [image_comp]
@@ -577,8 +577,6 @@ structure OpenEmbedding (f : X → Y) extends Embedding f : Prop where
 #align open_embedding OpenEmbedding
 #align open_embedding_iff openEmbedding_iff
 
-variable {f : X → Y} {g : Y → Z}
-
 theorem OpenEmbedding.isOpenMap (hf : OpenEmbedding f) : IsOpenMap f :=
   hf.toEmbedding.toInducing.isOpenMap hf.open_range
 #align open_embedding.is_open_map OpenEmbedding.isOpenMap
@@ -595,16 +593,16 @@ theorem OpenEmbedding.open_iff_image_open (hf : OpenEmbedding f) {s : Set X} :
     apply preimage_image_eq _ hf.inj⟩
 #align open_embedding.open_iff_image_open OpenEmbedding.open_iff_image_open
 
-theorem OpenEmbedding.tendsto_nhds_iff {f : ι → Y} {g : Y → Z} {a : Filter ι} {y : Y}
+theorem OpenEmbedding.tendsto_nhds_iff {f : ι → Y} {a : Filter ι} {y : Y}
     (hg : OpenEmbedding g) : Tendsto f a (𝓝 y) ↔ Tendsto (g ∘ f) a (𝓝 (g y)) :=
   hg.toEmbedding.tendsto_nhds_iff
 #align open_embedding.tendsto_nhds_iff OpenEmbedding.tendsto_nhds_iff
 
-theorem OpenEmbedding.tendsto_nhds_iff' (hf : OpenEmbedding f) {g : Y → Z}
+theorem OpenEmbedding.tendsto_nhds_iff' (hf : OpenEmbedding f)
     {l : Filter Z} {a : X} : Tendsto (g ∘ f) (𝓝 a) l ↔ Tendsto g (𝓝 (f a)) l := by
   rw [Tendsto, ← map_map, hf.map_nhds_eq]; rfl
 
-theorem OpenEmbedding.continuousAt_iff (hf : OpenEmbedding f) {g : Y → Z} {x : X} :
+theorem OpenEmbedding.continuousAt_iff (hf : OpenEmbedding f) {x : X} :
     ContinuousAt (g ∘ f) x ↔ ContinuousAt g (f x) :=
   hf.tendsto_nhds_iff'
 #align open_embedding.continuous_at_iff OpenEmbedding.continuousAt_iff
@@ -688,8 +686,6 @@ structure ClosedEmbedding (f : X → Y) extends Embedding f : Prop where
   closed_range : IsClosed <| range f
 #align closed_embedding ClosedEmbedding
 #align closed_embedding_iff closedEmbedding_iff
-
-variable {f : X → Y} {g : Y → Z}
 
 namespace ClosedEmbedding
 
