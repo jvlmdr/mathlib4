@@ -49,8 +49,7 @@ open Set Filter Function
 
 open TopologicalSpace Topology Filter
 
-variable {X : Type*} {Y : Type*} {Z : Type*} {ι : Type*}
-  {f : X → Y} {g : Y → Z}
+variable {X : Type*} {Y : Type*} {Z : Type*} {ι : Type*} {f : X → Y} {g : Y → Z}
 
 section Inducing
 
@@ -274,7 +273,6 @@ def QuotientMap {X : Type*} {Y : Type*} [tX : TopologicalSpace X] [tY : Topologi
 #align quotient_map QuotientMap
 
 variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
-  {g : Y → Z} {f : X → Y}
 
 theorem quotientMap_iff : QuotientMap f ↔ Surjective f ∧ ∀ s : Set Y, IsOpen s ↔ IsOpen (f ⁻¹' s) :=
   and_congr Iff.rfl TopologicalSpace.ext_iff
@@ -341,7 +339,7 @@ def IsOpenMap [TopologicalSpace X] [TopologicalSpace Y] (f : X → Y) :=
   ∀ U : Set X, IsOpen U → IsOpen (f '' U)
 #align is_open_map IsOpenMap
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z] {f : X → Y}
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace Z]
 
 namespace IsOpenMap
 
@@ -472,8 +470,6 @@ is closed in `Y`. -/
 def IsClosedMap (f : X → Y) :=
   ∀ U : Set X, IsClosed U → IsClosed (f '' U)
 #align is_closed_map IsClosedMap
-
-variable {f : X → Y}
 
 namespace IsClosedMap
 open Function
