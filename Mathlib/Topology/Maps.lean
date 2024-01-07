@@ -194,7 +194,7 @@ structure Embedding [TopologicalSpace X] [TopologicalSpace Y] (f : X → Y) exte
 #align embedding Embedding
 #align embedding_iff embedding_iff
 
-theorem Function.Injective.embedding_induced [t : TopologicalSpace Y] {f : X → Y}
+theorem Function.Injective.embedding_induced [t : TopologicalSpace Y]
     (hf : Injective f) : @_root_.Embedding X Y (t.induced f) t f :=
   @_root_.Embedding.mk X Y (t.induced f) t _ (inducing_induced f) hf
 #align function.injective.embedding_induced Function.Injective.embedding_induced
@@ -210,12 +210,12 @@ theorem embedding_id : Embedding (@id X) :=
   ⟨inducing_id, fun _ _ h => h⟩
 #align embedding_id embedding_id
 
-protected theorem Embedding.comp {g : Y → Z} {f : X → Y} (hg : Embedding g) (hf : Embedding f) :
+protected theorem Embedding.comp (hg : Embedding g) (hf : Embedding f) :
     Embedding (g ∘ f) :=
   { hg.toInducing.comp hf.toInducing with inj := fun _ _ h => hf.inj <| hg.inj h }
 #align embedding.comp Embedding.comp
 
-theorem embedding_of_embedding_compose {f : X → Y} {g : Y → Z} (hf : Continuous f)
+theorem embedding_of_embedding_compose (hf : Continuous f)
     (hg : Continuous g) (hgf : Embedding (g ∘ f)) : Embedding f :=
   { induced := (inducing_of_inducing_compose hf hg hgf.toInducing).induced
     inj := fun a₁ a₂ h => hgf.inj <| by simp [h, (· ∘ ·)] }
@@ -226,27 +226,27 @@ protected theorem Function.LeftInverse.embedding {f : X → Y} {g : Y → X} (h 
   embedding_of_embedding_compose hg hf <| h.comp_eq_id.symm ▸ embedding_id
 #align function.left_inverse.embedding Function.LeftInverse.embedding
 
-theorem Embedding.map_nhds_eq {f : X → Y} (hf : Embedding f) (a : X) :
+theorem Embedding.map_nhds_eq (hf : Embedding f) (a : X) :
     (𝓝 a).map f = 𝓝[range f] f a :=
   hf.1.map_nhds_eq a
 #align embedding.map_nhds_eq Embedding.map_nhds_eq
 
-theorem Embedding.map_nhds_of_mem {f : X → Y} (hf : Embedding f) (a : X) (h : range f ∈ 𝓝 (f a)) :
+theorem Embedding.map_nhds_of_mem (hf : Embedding f) (a : X) (h : range f ∈ 𝓝 (f a)) :
     (𝓝 a).map f = 𝓝 (f a) :=
   hf.1.map_nhds_of_mem a h
 #align embedding.map_nhds_of_mem Embedding.map_nhds_of_mem
 
-theorem Embedding.tendsto_nhds_iff {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
+theorem Embedding.tendsto_nhds_iff {f : ι → Y} {a : Filter ι} {b : Y}
     (hg : Embedding g) : Tendsto f a (𝓝 b) ↔ Tendsto (g ∘ f) a (𝓝 (g b)) :=
   hg.toInducing.tendsto_nhds_iff
 #align embedding.tendsto_nhds_iff Embedding.tendsto_nhds_iff
 
-theorem Embedding.continuous_iff {f : X → Y} {g : Y → Z} (hg : Embedding g) :
+theorem Embedding.continuous_iff (hg : Embedding g) :
     Continuous f ↔ Continuous (g ∘ f) :=
   Inducing.continuous_iff hg.1
 #align embedding.continuous_iff Embedding.continuous_iff
 
-theorem Embedding.continuous {f : X → Y} (hf : Embedding f) : Continuous f :=
+theorem Embedding.continuous (hf : Embedding f) : Continuous f :=
   Inducing.continuous hf.1
 #align embedding.continuous Embedding.continuous
 
@@ -259,8 +259,7 @@ theorem Embedding.closure_eq_preimage_closure_image {e : X → Y} (he : Embeddin
 is the discrete topology on `X`.
 
 See also `DiscreteTopology.of_continuous_injective`. -/
-theorem Embedding.discreteTopology
-    [DiscreteTopology Y] {f : X → Y} (hf : Embedding f) : DiscreteTopology X :=
+theorem Embedding.discreteTopology [DiscreteTopology Y] (hf : Embedding f) : DiscreteTopology X :=
   .of_continuous_injective hf.continuous hf.inj
 #align embedding.discrete_topology Embedding.discreteTopology
 
