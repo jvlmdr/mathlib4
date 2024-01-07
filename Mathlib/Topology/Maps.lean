@@ -49,7 +49,7 @@ open Set Filter Function
 
 open TopologicalSpace Topology Filter
 
-variable {X : Type*} {Y : Type*} {γ : Type*} {δ : Type*}
+variable {X : Type*} {Y : Type*} {γ : Type*}
 
 section Inducing
 
@@ -63,7 +63,7 @@ structure Inducing [tX : TopologicalSpace X] [tY : TopologicalSpace Y] (f : X �
 #align inducing Inducing
 #align inducing_iff inducing_iff
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ] [TopologicalSpace δ]
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
 
 theorem inducing_induced (f : X → Y) : @Inducing X Y (TopologicalSpace.induced f ‹_›) _ f :=
   @Inducing.mk _ _ (TopologicalSpace.induced f ‹_›) _ _ rfl
@@ -275,7 +275,7 @@ def QuotientMap {X : Type*} {Y : Type*} [tX : TopologicalSpace X] [tY : Topologi
   Surjective f ∧ tY = tX.coinduced f
 #align quotient_map QuotientMap
 
-variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ] [TopologicalSpace δ]
+variable [TopologicalSpace X] [TopologicalSpace Y] [TopologicalSpace γ]
   {g : Y → γ} {f : X → Y}
 
 theorem quotientMap_iff : QuotientMap f ↔ Surjective f ∧ ∀ s : Set Y, IsOpen s ↔ IsOpen (f ⁻¹' s) :=
