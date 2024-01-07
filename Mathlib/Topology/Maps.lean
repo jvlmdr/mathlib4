@@ -49,7 +49,7 @@ open Set Filter Function
 
 open TopologicalSpace Topology Filter
 
-variable {X : Type*} {Y : Type*} {Z : Type*}
+variable {X : Type*} {Y : Type*} {Z : Type*} {ι : Type*}
 
 section Inducing
 
@@ -118,7 +118,7 @@ theorem Inducing.image_mem_nhdsWithin {f : X → Y} (hf : Inducing f) {a : X} {s
   hf.map_nhds_eq a ▸ image_mem_map hs
 #align inducing.image_mem_nhds_within Inducing.image_mem_nhdsWithin
 
-theorem Inducing.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
+theorem Inducing.tendsto_nhds_iff {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
     (hg : Inducing g) : Tendsto f a (𝓝 b) ↔ Tendsto (g ∘ f) a (𝓝 (g b)) := by
   rw [hg.nhds_eq_comap, tendsto_comap_iff]
 #align inducing.tendsto_nhds_iff Inducing.tendsto_nhds_iff
@@ -237,7 +237,7 @@ theorem Embedding.map_nhds_of_mem {f : X → Y} (hf : Embedding f) (a : X) (h : 
   hf.1.map_nhds_of_mem a h
 #align embedding.map_nhds_of_mem Embedding.map_nhds_of_mem
 
-theorem Embedding.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
+theorem Embedding.tendsto_nhds_iff {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
     (hg : Embedding g) : Tendsto f a (𝓝 b) ↔ Tendsto (g ∘ f) a (𝓝 (g b)) :=
   hg.toInducing.tendsto_nhds_iff
 #align embedding.tendsto_nhds_iff Embedding.tendsto_nhds_iff
@@ -260,7 +260,7 @@ theorem Embedding.closure_eq_preimage_closure_image {e : X → Y} (he : Embeddin
 is the discrete topology on `X`.
 
 See also `DiscreteTopology.of_continuous_injective`. -/
-theorem Embedding.discreteTopology {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+theorem Embedding.discreteTopology
     [DiscreteTopology Y] {f : X → Y} (hf : Embedding f) : DiscreteTopology X :=
   .of_continuous_injective hf.continuous hf.inj
 #align embedding.discrete_topology Embedding.discreteTopology
@@ -596,7 +596,7 @@ theorem OpenEmbedding.open_iff_image_open (hf : OpenEmbedding f) {s : Set X} :
     apply preimage_image_eq _ hf.inj⟩
 #align open_embedding.open_iff_image_open OpenEmbedding.open_iff_image_open
 
-theorem OpenEmbedding.tendsto_nhds_iff {ι : Type*} {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
+theorem OpenEmbedding.tendsto_nhds_iff {f : ι → Y} {g : Y → Z} {a : Filter ι} {b : Y}
     (hg : OpenEmbedding g) : Tendsto f a (𝓝 b) ↔ Tendsto (g ∘ f) a (𝓝 (g b)) :=
   hg.toEmbedding.tendsto_nhds_iff
 #align open_embedding.tendsto_nhds_iff OpenEmbedding.tendsto_nhds_iff
@@ -694,8 +694,8 @@ variable {f : X → Y} {g : Y → Z}
 
 namespace ClosedEmbedding
 
-theorem tendsto_nhds_iff {ι : Type*} {g : ι → X} {a : Filter ι} {b : X}
-    (hf : ClosedEmbedding f) : Tendsto g a (𝓝 b) ↔ Tendsto (f ∘ g) a (𝓝 (f b)) :=
+theorem tendsto_nhds_iff {g : ι → X} {a : Filter ι} {b : X} (hf : ClosedEmbedding f) :
+    Tendsto g a (𝓝 b) ↔ Tendsto (f ∘ g) a (𝓝 (f b)) :=
   hf.toEmbedding.tendsto_nhds_iff
 #align closed_embedding.tendsto_nhds_iff ClosedEmbedding.tendsto_nhds_iff
 
