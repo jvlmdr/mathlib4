@@ -689,6 +689,21 @@ theorem tsum_eval {α : Type*} {p : α → ContinuousMultilinearMap 𝕜 E G} (h
   (hasSum_eval hp.hasSum m).tsum_eq.symm
 #align continuous_multilinear_map.tsum_eval ContinuousMultilinearMap.tsum_eval
 
+variable (𝕜 E G)
+
+/-- The application of a multilinear map as a `ContinuousLinearMap`. -/
+def apply (m : ∀ i, E i) : ContinuousMultilinearMap 𝕜 E G →L[𝕜] G where
+  toFun c := c m
+  map_add' _ _ := rfl
+  map_smul' _ _ := rfl
+  cont := continuous_eval_left m
+
+variable {𝕜 E G}
+
+@[simp]
+lemma apply_apply {m : ∀ i, E i} {c : ContinuousMultilinearMap 𝕜 E G} :
+    (apply 𝕜 E G m) c = c m := rfl
+
 open Topology Filter
 
 /-- If the target space is complete, the space of continuous multilinear maps with its norm is also
