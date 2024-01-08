@@ -907,6 +907,33 @@ theorem ContDiff.smulRight {f : E → F →L[𝕜] 𝕜} {g : E → G} {n : ℕ�
 
 end SpecificBilinearMaps
 
+section ClmApplyConst
+
+theorem ContinuousLinearMap.iteratedFDeriv_apply_const_apply {c : E → F →L[𝕜] G}
+    (hc : ContDiff 𝕜 n c) (x : E) {i : ℕ} (hi : (i : ℕ∞) ≤ n) (u : F) (m : Fin i → E) :
+    (iteratedFDeriv 𝕜 i (fun y => (c y) u) x) m = (iteratedFDeriv 𝕜 i c x) m u := by
+  induction i generalizing x with
+  | zero => simp
+  | succ i ih =>
+    replace hi : i < n
+    . refine lt_of_lt_of_le ?_ hi
+      norm_cast
+      exact Nat.lt_succ_self i
+    have h_deriv_apply {v} : Differentiable 𝕜 (fun y => iteratedFDeriv 𝕜 i (fun y => (c y) v) y)
+    . refine ContDiff.differentiable_iteratedFDeriv (n := n) hi ?_
+      exact hc.clm_apply contDiff_const
+    have h_deriv : Differentiable 𝕜 (iteratedFDeriv 𝕜 i (fun y => c y))
+    . exact hc.differentiable_iteratedFDeriv hi
+    have h_apply_deriv {m} : Differentiable 𝕜 (fun y => (iteratedFDeriv 𝕜 i (fun y => c y) y) m)
+    . exact h_deriv.continuousMultilinear_apply_const m
+    simp [iteratedFDeriv_succ_apply_left]
+    rw [← fderiv_continuousMultilinear_apply_const_apply (h_deriv_apply _)]
+    simp [ih _ (le_of_lt hi)]
+    simp [fderiv_clm_apply (h_apply_deriv _) (differentiableAt_const u)]
+    rw [fderiv_continuousMultilinear_apply_const_apply (h_deriv _)]
+
+end ClmApplyConst
+
 /-- The natural equivalence `(E × F) × G ≃ E × (F × G)` is smooth.
 
 Warning: if you think you need this lemma, it is likely that you can simplify your proof by
