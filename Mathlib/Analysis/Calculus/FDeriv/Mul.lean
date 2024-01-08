@@ -208,13 +208,13 @@ theorem fderiv_continuousMultilinear_apply_const (hc : DifferentiableAt 𝕜 c x
     (fderiv 𝕜 (fun y => (c y) u) x) = (fderiv 𝕜 c x).flipMultilinear u :=
   (hc.hasFDerivAt.continuousMultilinear_apply_const u).fderiv
 
-/-- Applying a `ContinuousMultilinearMap` commutes with differentiation. -/
+/-- Application of a `ContinuousMultilinearMap` to a constant commutes with `fderivWithin`. -/
 theorem fderivWithin_continuousMultilinear_apply_const_apply (hxs : UniqueDiffWithinAt 𝕜 s x)
     (hc : DifferentiableWithinAt 𝕜 c s x) (u : ∀ i, M i) (m : E) :
     (fderivWithin 𝕜 (fun y => (c y) u) s x) m = (fderivWithin 𝕜 c s x) m u := by
   simp [fderivWithin_continuousMultilinear_apply_const hxs hc]
 
-/-- Applying a `ContinuousMultilinearMap` commutes with differentiation. -/
+/-- Application of a `ContinuousMultilinearMap` to a constant commutes with `fderiv`. -/
 theorem fderiv_continuousMultilinear_apply_const_apply (hc : DifferentiableAt 𝕜 c x)
     (u : ∀ i, M i) (m : E) :
     (fderiv 𝕜 (fun y => (c y) u) x) m = (fderiv 𝕜 c x) m u := by

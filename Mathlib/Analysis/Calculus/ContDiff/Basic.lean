@@ -909,6 +909,7 @@ end SpecificBilinearMaps
 
 section ClmApplyConst
 
+/-- Application of a CLM to a constant commutes with `iteratedFDeriv`. -/
 theorem ContinuousLinearMap.iteratedFDeriv_apply_const_apply {c : E → F →L[𝕜] G}
     (hc : ContDiff 𝕜 n c) (x : E) {i : ℕ} (hi : (i : ℕ∞) ≤ n) (u : F) (m : Fin i → E) :
     (iteratedFDeriv 𝕜 i (fun y => (c y) u) x) m = (iteratedFDeriv 𝕜 i c x) m u := by
