@@ -910,7 +910,7 @@ end SpecificBilinearMaps
 section ClmApplyConst
 
 /-- Application of a CLM to a constant commutes with `iteratedFDerivWithin`. -/
-theorem iteratedFDerivWithin_apply_const_apply
+theorem iteratedFDerivWithin_clm_apply_const_apply
     {s : Set E} (hs : UniqueDiffOn 𝕜 s) {n : ℕ∞} {c : E → F →L[𝕜] G} (hc : ContDiffOn 𝕜 n c s)
     {i : ℕ} (hi : i ≤ n) {x : E} (hx : x ∈ s) {u : F} {m : Fin i → E} :
     (iteratedFDerivWithin 𝕜 i (fun y => (c y) u) s x) m = (iteratedFDerivWithin 𝕜 i c s x) m u := by
@@ -938,23 +938,8 @@ theorem iteratedFDeriv_clm_apply_const_apply
     {n : ℕ∞} {c : E → F →L[𝕜] G} (hc : ContDiff 𝕜 n c)
     {i : ℕ} (hi : i ≤ n) {x : E} {u : F} {m : Fin i → E} :
     (iteratedFDeriv 𝕜 i (fun y => (c y) u) x) m = (iteratedFDeriv 𝕜 i c x) m u := by
-  induction i generalizing x with
-  | zero => simp
-  | succ i ih =>
-    replace hi : i < n
-    . refine lt_of_lt_of_le ?_ hi
-      norm_cast
-      exact Nat.lt_succ_self i
-    have h_deriv_apply : Differentiable 𝕜 (iteratedFDeriv 𝕜 i (fun y => (c y) u)) :=
-      (hc.clm_apply contDiff_const).differentiable_iteratedFDeriv hi
-    have h_deriv : Differentiable 𝕜 (iteratedFDeriv 𝕜 i (fun y => c y)) :=
-      hc.differentiable_iteratedFDeriv hi
-    simp [iteratedFDeriv_succ_apply_left]
-    rw [← fderiv_continuousMultilinear_apply_const_apply (h_deriv_apply _)]
-    simp [ih (le_of_lt hi)]
-    rw [fderiv_clm_apply (h_deriv.continuousMultilinear_apply_const _ x) (differentiableAt_const u)]
-    simp
-    rw [fderiv_continuousMultilinear_apply_const_apply (h_deriv _)]
+  simp [← iteratedFDerivWithin_univ]
+  exact iteratedFDerivWithin_clm_apply_const_apply uniqueDiffOn_univ hc.contDiffOn hi trivial
 
 end ClmApplyConst
 
