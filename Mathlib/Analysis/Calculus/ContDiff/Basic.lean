@@ -917,10 +917,7 @@ theorem iteratedFDerivWithin_clm_apply_const_apply
   induction i generalizing x with
   | zero => simp
   | succ i ih =>
-    replace hi : i < n
-    . refine lt_of_lt_of_le ?_ hi
-      norm_cast
-      exact Nat.lt_succ_self i
+    replace hi : i < n := lt_of_lt_of_le (by norm_cast; simp) hi
     have h_deriv_apply : DifferentiableOn 𝕜 (iteratedFDerivWithin 𝕜 i (fun y => (c y) u) s) s :=
       (hc.clm_apply contDiffOn_const).differentiableOn_iteratedFDerivWithin hi hs
     have h_deriv : DifferentiableOn 𝕜 (iteratedFDerivWithin 𝕜 i (fun y => c y) s) s :=

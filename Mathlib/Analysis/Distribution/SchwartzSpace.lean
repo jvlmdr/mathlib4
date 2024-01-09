@@ -964,8 +964,8 @@ theorem iteratedPDeriv_eq_iteratedFDeriv {n : ℕ} {m : Fin n → E} {f : 𝓢(E
   | succ n hi =>
     simp [iteratedPDeriv_succ_left, iteratedFDeriv_succ_apply_left]
     rw [← fderiv_continuousMultilinear_apply_const_apply]
-    . simp [← hi]
-    . exact f.smooth'.differentiable_iteratedFDeriv (WithTop.coe_lt_top n) _
+    · simp [← hi]
+    · exact f.smooth'.differentiable_iteratedFDeriv (WithTop.coe_lt_top n) _
 
 end Derivatives
 
