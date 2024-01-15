@@ -360,7 +360,7 @@ theorem singleton_inj {a b : α} : ({a} : Multiset α) = {b} ↔ a = b := by
   exact cons_inj_left _
 #align multiset.singleton_inj Multiset.singleton_inj
 
-theorem singleton_injective : Function.Injective (fun x => ({x} : Multiset α)) :=
+theorem singleton_injective : Function.Injective ({·} : α → Multiset α) :=
   fun _ _ => singleton_inj.mp
 
 @[simp, norm_cast]
@@ -658,7 +658,7 @@ def consRightEmbedding (a : α) : Multiset α ↪o Multiset α :=
 def consLeftEmbedding (s : Multiset α) : α ↪ Multiset α := ⟨s.cons, cons_injective_left⟩
 
 /-- Constructing a multiset with one element is injective. -/
-def singletonEmbedding : α ↪ Multiset α := ⟨fun x => {x}, singleton_injective⟩
+def singletonEmbedding : α ↪ Multiset α := ⟨({·}), singleton_injective⟩
 
 @[simp]
 lemma consRightEmbedding_apply (a : α) (s : Multiset α) : consRightEmbedding a s = a ::ₘ s := rfl
