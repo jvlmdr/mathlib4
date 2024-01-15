@@ -8,9 +8,26 @@ import Mathlib.Data.List.Sublists
 import Mathlib.Data.Nat.Choose.Basic
 
 /-!
-# List multichoose
+# Multichoose for lists
 
 Describes the lists of a given length obtained by taking sublists with replacement.
+Note that lists are produced in reverse order to match `sublistsLen`.
+
+## Main definitions
+
+- `multichoose` : Returns a list of sublists of length `n` with replacement.
+
+## Main results
+
+- `length_multichoose` : The number of lists corresponds to `Nat.multichoose`.
+- `nodup_multichoose` : If there are no duplicates in the input, then there are none in the output.
+- `exists_perm_mem_multichoose_iff` : There exists a permutation of a list in `multichoose` iff it
+  contains `n` elements that are all in the input.
+- `multichoose_mono` : `multichoose` is monotone in the sublist relation.
+- `multichoose_sublist_sublistsLen_join_map_replicate` : The `multichoose` list is a sublist of
+  `sublistsLen n` with all elements repeated `n` times.
+- `perm_mem_multichoose_iff_eq_of_nodup` : If there are no duplicates in the input, then two lists
+  in `multichoose` are a permutation iff equal.
 -/
 
 namespace List
@@ -19,8 +36,7 @@ variable {α β : Type*}
 
 /--
 Finds all lists of length `n` formed using the elements of `l` in order, with replacement.
-Similar to `List.sublistsLen` and `Multiset.powersetCard` but with replacement.
-Supports the definition of `Finset.multichoose`.
+Like `List.sublistsLen` with replacement. Supports the definition of `Finset.multichoose`.
 
 For comparison to `List.sublistsLen`:
 ```
@@ -52,18 +68,13 @@ theorem multichoose_succ_cons {n : ℕ} {x : α} {l : List α} :
     multichoose n.succ l ++ map (cons x) (multichoose n (x :: l)) := by
   rw [multichoose]
 
-/-- Multichoose is empty iff `n` is non-zero and the list is empty. -/
+/-- `multichoose` is empty iff `n` is non-zero and the list is empty. -/
 @[simp]
-theorem multichoose_eq_nil {n : ℕ} {l : List α} :
+theorem multichoose_eq_nil_iff {n : ℕ} {l : List α} :
     multichoose n l = [] ↔ n ≠ 0 ∧ l = [] := by
   induction n with
   | zero => simp
   | succ n ihn => cases l <;> simp [ihn]
-
-@[simp]
-theorem multichoose_ne_nil {n : ℕ} {l : List α} :
-    multichoose n l ≠ [] ↔ n = 0 ∨ l ≠ [] := by
-  cases n <;> simp
 
 @[simp]
 theorem mem_multichoose_nil {n : ℕ} {t : List α} :
@@ -77,21 +88,19 @@ theorem multichoose_nil_of_ne {n : ℕ} (hn : n ≠ 0) : multichoose n ([] : Lis
   | succ n => rfl
 
 @[simp]
-theorem multichoose_nil_of_pos {n : ℕ} (hn : 0 < n) : multichoose n ([] : List α) = [] :=
-  multichoose_nil_of_ne (Nat.pos_iff_ne_zero.mp hn)
-
-@[simp]
 theorem multichoose_singleton {n : ℕ} {x : α} : multichoose n [x] = [replicate n x] := by
   induction n with
   | zero => simp
   | succ n ih => simp [ih]
 
-theorem multichoose_one {l : List α} : multichoose 1 l = map (fun x => [x]) (reverse l) := by
+@[simp]
+theorem multichoose_one {l : List α} : multichoose 1 l = map ([·]) (reverse l) := by
   induction l with
   | nil => simp
   | cons x l ih => simp [ih]
 
 /-- The number of elements in multichoose is equal to `Nat.multichoose`. -/
+@[simp]
 theorem length_multichoose {n : ℕ} {l : List α} :
     length (multichoose n l) = Nat.multichoose l.length n := by
   induction n generalizing l with
@@ -149,7 +158,7 @@ theorem mem_of_mem_multichoose {n : ℕ} {l t : List α} (ht : t ∈ multichoose
         | inr hr => exact ihn hs r hr
 
 /-- The `multichoose` of a `Sublist` is a `Sublist` of `multichoose`. -/
-theorem multichoose_sublist_multichoose {n : ℕ} {l₁ l₂ : List α} (hl : l₁ <+ l₂) :
+theorem multichoose_mono {n : ℕ} {l₁ l₂ : List α} (hl : l₁ <+ l₂) :
     multichoose n l₁ <+ multichoose n l₂ := by
   induction n generalizing l₁ l₂ with
   | zero => simp
@@ -174,8 +183,8 @@ theorem nodup_multichoose {n : ℕ} {l : List α} (hl : Nodup l) : Nodup (multic
       rw [nodup_cons] at hl
       specialize ihl hl.2
       refine Nodup.append ihl (ihn.map cons_injective) ?_
-      have hx {t} : x :: t ∉ multichoose n.succ l :=
-        fun ht ↦ hl.1 (mem_of_mem_multichoose ht x (mem_cons_self x t))
+      have hx {t} : x :: t ∉ multichoose n.succ l := fun ht ↦
+        hl.1 (mem_of_mem_multichoose ht x (mem_cons_self x t))
       simp [disjoint_right, hx]
 
 /-- If a list has no duplicates, then two lists in `multichoose` are a permutation iff equal. -/
@@ -213,8 +222,8 @@ theorem perm_mem_multichoose_iff_eq_of_nodup [DecidableEq α] {n : ℕ} {l : Lis
               rw [ht.2]
               replace hs := mem_of_mem_multichoose hs
               simp only [mem_cons, forall_eq_or_imp] at hs
-              have hc : x ≠ c := fun hx => by rw [← hx] at hs; exact hl.1 hs.1
-              have hcs : x ∉ cs := fun hx => hl.1 (hs.2 x hx)
+              have hc : x ≠ c := fun hx ↦ by rw [← hx] at hs; exact hl.1 hs.1
+              have hcs : x ∉ cs := fun hx ↦ hl.1 (hs.2 x hx)
               simp [cons_perm_iff_perm_erase, hc, hcs]
           | inl ht =>
             cases hs with
@@ -226,8 +235,8 @@ theorem perm_mem_multichoose_iff_eq_of_nodup [DecidableEq α] {n : ℕ} {l : Lis
               rw [hs.2]
               replace ht := mem_of_mem_multichoose ht
               simp only [mem_cons, forall_eq_or_imp] at ht
-              have hb : x ≠ b := fun hx => by rw [← hx] at ht; exact hl.1 ht.1
-              have hbs : x ∉ bs := fun hx => hl.1 (ht.2 x hx)
+              have hb : x ≠ b := fun hx ↦ by rw [← hx] at ht; exact hl.1 ht.1
+              have hbs : x ∉ bs := fun hx ↦ hl.1 (ht.2 x hx)
               rw [perm_comm, eq_comm]
               simp [cons_perm_iff_perm_erase, hb, hbs]
 
@@ -281,7 +290,7 @@ theorem exists_perm_mem_multichoose_iff [DecidableEq α] {n : ℕ} {l : List α}
   · exact fun h ↦ exists_perm_mem_multichoose h.1 h.2
 
 /-- The `multichoose` list is a sublist of `sublistsLen n` with all elements repeated `n` times. -/
-theorem multichoose_sublist_sublistsLen_join_map_replicate' {n : ℕ} {l : List α} :
+theorem multichoose_sublist_sublistsLen_join_map_replicate {n : ℕ} {l : List α} :
     multichoose n l <+ sublistsLen n (l.map (replicate n)).join := by
   induction n generalizing l with
   | zero => simp
