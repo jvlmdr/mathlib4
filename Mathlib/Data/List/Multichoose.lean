@@ -1,6 +1,17 @@
+/-
+Copyright (c) 2024 Jack Valmadre. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jack Valmadre
+-/
 import Mathlib.Data.List.Basic
 import Mathlib.Data.List.Sublists
 import Mathlib.Data.Nat.Choose.Basic
+
+/-!
+# List multichoose
+
+Describes the lists of a fixed length obtained by taking sublists with replacement.
+-/
 
 namespace List
 

@@ -1,18 +1,24 @@
+/-
+Copyright (c) 2024 Jack Valmadre. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jack Valmadre
+-/
 import Mathlib.Algebra.BigOperators.Order
 import Mathlib.Data.List.Multichoose
 import Mathlib.Data.Multiset.Basic
+
+/-!
+# Multiset multichoose
+
+Describes the `Multiset` of  `Multiset`s of a given size obtained by selecting elements from a
+`Multiset` with replacement.
+-/
 
 open scoped BigOperators List
 
 variable {α : Type*} [DecidableEq α]
 
 namespace Multiset
-
--- -- TODO: Move?
--- theorem count_toList {x : α} {t : Multiset α} : t.toList.count x = t.count x := by
---   rw [← coe_count]
---   refine Quotient.inductionOn t ?_
---   simp
 
 section Aux
 
