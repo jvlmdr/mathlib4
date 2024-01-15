@@ -414,6 +414,18 @@ theorem sublists'_map (f : α → β) : ∀ (l : List α),
   | [] => by simp
   | a::l => by simp [map_cons, sublists'_cons, sublists'_map f l, Function.comp]
 
+/-- `sublistsLen` commutes with `map`. -/
+theorem sublistsLen_map (f : α → β) {n : ℕ} (l : List α) :
+    sublistsLen n (map f l) = map (map f) (sublistsLen n l) := by
+  induction n generalizing l with
+  | zero => simp
+  | succ n ihn =>
+    induction l with
+    | nil => simp
+    | cons x xs ihl =>
+      simp only [sublistsLen_succ_cons, ihl, ihn, map_cons, map_append, map_map]
+      rfl
+
 --Porting note: moved because it is now used to prove `sublists_cons_perm_append`
 theorem sublists_perm_sublists' (l : List α) : sublists l ~ sublists' l := by
   rw [← finRange_map_get l, sublists_map, sublists'_map]

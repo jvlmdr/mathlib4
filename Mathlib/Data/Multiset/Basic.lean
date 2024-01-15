@@ -154,6 +154,12 @@ theorem cons_inj_right (a : α) : ∀ {s t : Multiset α}, a ::ₘ s = a ::ₘ t
   rintro ⟨l₁⟩ ⟨l₂⟩; simp
 #align multiset.cons_inj_right Multiset.cons_inj_right
 
+theorem cons_injective_right {a : α} : Function.Injective (cons a) :=
+  fun _ _ h ↦ (cons_inj_right a).mp h
+
+theorem cons_injective_left {s : Multiset α} : Function.Injective s.cons :=
+  fun _ _ h ↦ (cons_inj_left s).mp h
+
 @[recursor 5]
 protected theorem induction {p : Multiset α → Prop} (empty : p 0)
     (cons : ∀ ⦃a : α⦄ {s : Multiset α}, p s → p (a ::ₘ s)) : ∀ s, p s := by
@@ -353,6 +359,9 @@ theorem singleton_inj {a b : α} : ({a} : Multiset α) = {b} ↔ a = b := by
   simp_rw [← cons_zero]
   exact cons_inj_left _
 #align multiset.singleton_inj Multiset.singleton_inj
+
+theorem singleton_injective : Function.Injective (fun x => ({x} : Multiset α)) :=
+  fun _ _ => singleton_inj.mp
 
 @[simp, norm_cast]
 theorem coe_eq_singleton {l : List α} {a : α} : (l : Multiset α) = {a} ↔ l = [a] := by
@@ -637,6 +646,28 @@ theorem singleton_le {a : α} {s : Multiset α} : {a} ≤ s ↔ a ∈ s :=
     simp
 
 end
+
+/-! ### Basic actions on multisets as embeddings -/
+
+
+/-- Adding an element preserves the partial order. -/
+def consRightEmbedding (a : α) : Multiset α ↪o Multiset α :=
+  ⟨⟨cons a, cons_injective_right⟩, cons_le_cons_iff a⟩
+
+/-- Adding an element to a multiset is injective. -/
+def consLeftEmbedding (s : Multiset α) : α ↪ Multiset α := ⟨s.cons, cons_injective_left⟩
+
+/-- Constructing a multiset with one element is injective. -/
+def singletonEmbedding : α ↪ Multiset α := ⟨fun x => {x}, singleton_injective⟩
+
+@[simp]
+lemma consRightEmbedding_apply (a : α) (s : Multiset α) : consRightEmbedding a s = a ::ₘ s := rfl
+
+@[simp]
+lemma consLeftEmbedding_apply (a : α) (s : Multiset α) : consLeftEmbedding s a = a ::ₘ s := rfl
+
+@[simp]
+lemma singletonEmbedding_apply (x : α) : singletonEmbedding x = {x} := rfl
 
 /-! ### Additive monoid -/
 

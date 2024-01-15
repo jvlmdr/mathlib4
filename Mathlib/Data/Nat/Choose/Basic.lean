@@ -424,4 +424,22 @@ theorem multichoose_eq : ∀ n k : ℕ, multichoose n k = (n + k - 1).choose k
   decreasing_by { assumption }
 #align nat.multichoose_eq Nat.multichoose_eq
 
+theorem multichoose_zero_eq_zero_iff {k : ℕ} : multichoose 0 k = 0 ↔ k ≠ 0 := by
+  cases k <;> simp
+
+theorem multichoose_zero_eq_zero_of_ne {k : ℕ} (hk : k ≠ 0) : multichoose 0 k = 0 :=
+  multichoose_zero_eq_zero_iff.mpr hk
+
+theorem multichoose_zero_eq_zero_of_pos {k : ℕ} (hk : 0 < k) : multichoose 0 k = 0 :=
+  multichoose_zero_eq_zero_iff.mpr (pos_iff_ne_zero.mp hk)
+
+@[simp]
+theorem multichoose_eq_zero_iff {n k : ℕ} : multichoose n k = 0 ↔ n = 0 ∧ k ≠ 0 := by
+  rw [multichoose_eq, choose_eq_zero_iff]
+  cases k with
+  | zero => simp
+  | succ k =>
+    rw [add_succ_sub_one]
+    simp [succ_eq_one_add]
+
 end Nat
