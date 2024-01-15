@@ -52,13 +52,6 @@ theorem multichoose_succ_cons {n : ℕ} {x : α} {l : List α} :
     multichoose n.succ l ++ map (cons x) (multichoose n (x :: l)) := by
   rw [multichoose]
 
-@[simp]
-theorem multichoose_cons_ne_nil {n : ℕ} {x : α} {l : List α} :
-    multichoose n (x :: l) ≠ [] := by
-  induction n with
-  | zero => simp
-  | succ n ih => simp [ih]
-
 /-- Multichoose is empty iff `n` is non-zero and the list is empty. -/
 @[simp]
 theorem multichoose_eq_nil {n : ℕ} {l : List α} :
@@ -77,9 +70,7 @@ theorem mem_multichoose_nil {n : ℕ} {t : List α} :
 
 @[simp]
 theorem multichoose_nil_of_ne {n : ℕ} (hn : n ≠ 0) : multichoose n ([] : List α) = [] := by
-  cases n with
-  | zero => contradiction
-  | succ n => rfl
+  simp [hn]
 
 @[simp]
 theorem multichoose_nil_of_pos {n : ℕ} (hn : 0 < n) : multichoose n ([] : List α) = [] :=
@@ -153,12 +144,7 @@ theorem mem_of_mem_multichoose {n : ℕ} {l t : List α} (ht : t ∈ multichoose
         | inl hr => simp [hr]
         | inr hr => exact ihn hs r hr
 
--- lemma mem_multichoose_cons {n : ℕ} {l t : List α} (ht : t ∈ multichoose n l) (x : α) :
---     t ∈ multichoose n (x :: l) := by
---   cases n with
---   | zero => simpa using ht
---   | succ n => simp [mem_multichoose_succ_cons, ht]
-
+/-- The `multichoose` of a `Sublist` is a `Sublist` of `multichoose`. -/
 theorem multichoose_sublist_multichoose {n : ℕ} {l₁ l₂ : List α} (hl : l₁ <+ l₂) :
     multichoose n l₁ <+ multichoose n l₂ := by
   induction n generalizing l₁ l₂ with
@@ -202,10 +188,10 @@ theorem perm_mem_multichoose_iff_eq_of_nodup [DecidableEq α] {n : ℕ} {l : Lis
       rw [nodup_cons] at hl
       specialize ihl hl.2
       cases t with
-      | nil => simp [eq_comm]
+      | nil => rw [nil_perm, eq_comm]
       | cons b bs =>
         cases s with
-        | nil => simp [eq_comm]
+        | nil => rw [perm_nil]
         | cons c cs =>
           -- Must consider four cases:
           -- (1) `t` and `s` both use `x` (induction on `n`)
@@ -254,7 +240,6 @@ theorem exists_perm_mem_multichoose [DecidableEq α] {n : ℕ} {l : List α} {t 
       refine ne_nil_of_length_eq_succ ht_len ?_
       simpa [eq_nil_iff_forall_not_mem] using ht_mem
     | cons x l ihl =>
-      -- simp only [mem_cons] at ht_mem
       -- Possible cases:
       -- 1. If `x ∉ t`, then we must use induction on `l`.
       -- 2. If `x ∈ t` and `x ∉ l`, then we must use induction on `n`.
