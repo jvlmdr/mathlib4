@@ -424,6 +424,14 @@ theorem multichoose_eq : ∀ n k : ℕ, multichoose n k = (n + k - 1).choose k
   decreasing_by { assumption }
 #align nat.multichoose_eq Nat.multichoose_eq
 
+theorem multichoose_le_multichoose {a b : ℕ} (c : ℕ) (h : a ≤ b) :
+    multichoose a c ≤ multichoose b c := by
+  simp only [multichoose_eq]
+  refine choose_le_choose c ?_
+  cases c with
+  | zero => exact Nat.sub_le_sub_right h 1
+  | succ c => simp [h]
+
 theorem multichoose_zero_eq_zero_iff {k : ℕ} : multichoose 0 k = 0 ↔ k ≠ 0 := by
   cases k <;> simp
 
