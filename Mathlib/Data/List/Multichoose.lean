@@ -56,7 +56,9 @@ theorem multichoose_succ_cons {n : ℕ} {x : α} {l : List α} :
 @[simp]
 theorem multichoose_eq_nil {n : ℕ} {l : List α} :
     multichoose n l = [] ↔ n ≠ 0 ∧ l = [] := by
-  cases n <;> cases l <;> simp
+  induction n with
+  | zero => simp
+  | succ n ihn => cases l <;> simp [ihn]
 
 @[simp]
 theorem multichoose_ne_nil {n : ℕ} {l : List α} :
@@ -70,7 +72,9 @@ theorem mem_multichoose_nil {n : ℕ} {t : List α} :
 
 @[simp]
 theorem multichoose_nil_of_ne {n : ℕ} (hn : n ≠ 0) : multichoose n ([] : List α) = [] := by
-  simp [hn]
+  cases n with
+  | zero => contradiction
+  | succ n => rfl
 
 @[simp]
 theorem multichoose_nil_of_pos {n : ℕ} (hn : 0 < n) : multichoose n ([] : List α) = [] :=
