@@ -10,7 +10,7 @@ import Mathlib.Data.Nat.Choose.Basic
 /-!
 # List multichoose
 
-Describes the lists of a fixed length obtained by taking sublists with replacement.
+Describes the lists of a given length obtained by taking sublists with replacement.
 -/
 
 namespace List
@@ -38,56 +38,63 @@ Multiset.count (Multiset.ofList [0, 0]) (Multiset.powersetCard 2 (2 • ↑[0, 0
 def multichoose : ℕ → List α → List (List α)
   | Nat.zero, _ => [[]]
   | Nat.succ _, [] => []
-  | Nat.succ n, x :: xs => List.append
-      (multichoose (n + 1) xs)
-      (map (cons x) (multichoose n (x :: xs)))  -- Order these to match `List.sublists`.
+  | Nat.succ n, x :: l => multichoose (n + 1) l ++ map (cons x) (multichoose n (x :: l))
 
 @[simp]
-lemma multichoose_zero {l : List α} : multichoose 0 l = [[]] := by rw [multichoose]
+theorem multichoose_zero {l : List α} : multichoose 0 l = [[]] := by rw [multichoose]
 
 @[simp]
-lemma multichoose_succ_nil {n : ℕ} : multichoose n.succ ([] : List α) = [] := rfl
+theorem multichoose_succ_nil {n : ℕ} : multichoose n.succ ([] : List α) = [] := rfl
 
-lemma multichoose_succ_cons {n : ℕ} {x : α} {xs : List α} :
-    multichoose n.succ (x :: xs) = List.append
-      (multichoose (n + 1) xs)
-      (map (cons x) (multichoose n (x :: xs))) := by
+@[simp]
+theorem multichoose_succ_cons {n : ℕ} {x : α} {l : List α} :
+    multichoose n.succ (x :: l) =
+    multichoose n.succ l ++ map (cons x) (multichoose n (x :: l)) := by
   rw [multichoose]
 
 @[simp]
-lemma multichoose_nil {n : ℕ} (hn : n ≠ 0) :
-    multichoose n ([] : List α) = [] := by
+theorem multichoose_cons_ne_nil {n : ℕ} {x : α} {l : List α} :
+    multichoose n (x :: l) ≠ [] := by
+  induction n with
+  | zero => simp
+  | succ n ih => simp [ih]
+
+/-- Multichoose is empty iff `n` is non-zero and the list is empty. -/
+@[simp]
+theorem multichoose_eq_nil {n : ℕ} {l : List α} :
+    multichoose n l = [] ↔ n ≠ 0 ∧ l = [] := by
+  cases n <;> cases l <;> simp
+
+@[simp]
+theorem multichoose_ne_nil {n : ℕ} {l : List α} :
+    multichoose n l ≠ [] ↔ n = 0 ∨ l ≠ [] := by
+  cases n <;> simp
+
+@[simp]
+theorem mem_multichoose_nil {n : ℕ} {t : List α} :
+    t ∈ multichoose n ([] : List α) ↔ n = 0 ∧ t = [] := by
+  cases n <;> simp
+
+@[simp]
+theorem multichoose_nil_of_ne {n : ℕ} (hn : n ≠ 0) : multichoose n ([] : List α) = [] := by
   cases n with
   | zero => contradiction
   | succ n => rfl
 
 @[simp]
-lemma mem_multichoose_nil {n : ℕ} {t : List α} :
-    t ∈ multichoose n ([] : List α) ↔ n = 0 ∧ t = [] := by
-  cases n <;> simp
+theorem multichoose_nil_of_pos {n : ℕ} (hn : 0 < n) : multichoose n ([] : List α) = [] :=
+  multichoose_nil_of_ne (Nat.pos_iff_ne_zero.mp hn)
 
 @[simp]
-lemma multichoose_singleton {n : ℕ} {x : α} : multichoose n [x] = [replicate n x] := by
+theorem multichoose_singleton {n : ℕ} {x : α} : multichoose n [x] = [replicate n x] := by
   induction n with
   | zero => simp
-  | succ n ih => simp [multichoose_succ_cons, ih]
+  | succ n ih => simp [ih]
 
 theorem multichoose_one {l : List α} : multichoose 1 l = map (fun x => [x]) (reverse l) := by
   induction l with
   | nil => simp
-  | cons x xs ihl => simp [multichoose_succ_cons, ihl]
-
-/-- Multichoose is empty iff `n` is non-zero and the list is empty. -/
-@[simp]
-theorem multichoose_eq_empty {n : ℕ} {l : List α} :
-    multichoose n l = [] ↔ n ≠ 0 ∧ l = [] := by
-  induction n with
-  | zero => simp
-  | succ n ihn =>
-    simp
-    cases l with
-    | nil => simp
-    | cons x xs => simp [multichoose_succ_cons, ihn]
+  | cons x l ih => simp [ih]
 
 /-- The number of elements in multichoose is equal to `Nat.multichoose`. -/
 theorem length_multichoose {n : ℕ} {l : List α} :
@@ -97,81 +104,72 @@ theorem length_multichoose {n : ℕ} {l : List α} :
   | succ n ihn =>
     induction l with
     | nil => simp
-    | cons x xs ihl =>
-      simp [multichoose_succ_cons, Nat.multichoose_succ_succ]
-      simp [ihn, ihl]
+    | cons x l ihl => simp [Nat.multichoose_succ_succ, ihn, ihl]
 
-lemma mem_multichoose_succ_cons {n : ℕ} {x : α} {xs : List α} {t : List α} :
-    t ∈ multichoose n.succ (x :: xs) ↔
-    t ∈ multichoose n.succ xs ∨ (∃ s ∈ multichoose n (x :: xs), t = x :: s) := by
-  simp [multichoose_succ_cons]
+theorem mem_multichoose_succ_cons {n : ℕ} {x : α} {l : List α} {t : List α} :
+    t ∈ multichoose n.succ (x :: l) ↔
+    t ∈ multichoose n.succ l ∨ (∃ s ∈ multichoose n (x :: l), t = x :: s) := by
   simp [eq_comm]
 
-lemma cons_mem_multichoose_succ_cons {n : ℕ} {x y : α} {xs ys : List α} :
-    y :: ys ∈ multichoose n.succ (x :: xs) ↔
-    y :: ys ∈ multichoose n.succ xs ∨ (y = x ∧ ys ∈ multichoose n (x :: xs)) := by
-  simp [multichoose_succ_cons]
-  simp [and_comm, eq_comm]
-
-/-- All lists in `multichoose` are composed of elements from the original list. -/
-theorem mem_of_mem_multichoose {n : ℕ} {l t : List α} (ht : t ∈ multichoose n l) :
-    ∀ u ∈ t, u ∈ l := by
-  induction n generalizing t l with
-  | zero => simp at ht; simp [ht]
-  | succ n ihn =>
-    induction l with
-    | nil => simp at ht
-    | cons y ys ihl =>
-      -- Could use `cons_mem_multichoose_succ_cons` here to avoid `∃`; could be messier though.
-      rw [mem_multichoose_succ_cons] at ht
-      intro u hu
-      cases ht with
-      | inl ht => simpa using Or.inr (ihl ht u hu)
-      | inr ht =>
-        rcases ht with ⟨s, hs, ht⟩
-        simp [ht] at hu
-        cases hu with
-        | inl hu => simpa using Or.inl hu
-        | inr hu => simpa using ihn hs u hu
+theorem cons_mem_multichoose_succ_cons {n : ℕ} {x a : α} {l t : List α} :
+    a :: t ∈ multichoose n.succ (x :: l) ↔
+    a :: t ∈ multichoose n.succ l ∨ (a = x ∧ t ∈ multichoose n (x :: l)) := by
+  rw [and_comm, eq_comm]
+  simp
 
 /-- All lists in `multichoose` have length `n`. -/
 theorem length_of_mem_multichoose {n : ℕ} {l t : List α} (ht : t ∈ multichoose n l) :
     t.length = n := by
   induction n generalizing t l with
-  | zero => simp at ht; simp [ht]
+  | zero => rw [multichoose_zero, mem_singleton] at ht; simp [ht]
   | succ n ihn =>
     induction l with
-    | nil => simp at ht
-    | cons x xs ihl =>
-      simp [mem_multichoose_succ_cons] at ht
+    | nil => contradiction
+    | cons x l ihl =>
+      rw [mem_multichoose_succ_cons] at ht
       cases ht with
       | inl ht => exact ihl ht
       | inr ht =>
         rcases ht with ⟨s, hs, ht⟩
-        simp [ht]
-        exact ihn hs
+        simp [ht, ihn hs]
 
--- TODO: Add more general monotonicity using Sublist `<+`.
+/-- All lists in `multichoose` are composed of elements from the original list. -/
+theorem mem_of_mem_multichoose {n : ℕ} {l t : List α} (ht : t ∈ multichoose n l) :
+    ∀ u ∈ t, u ∈ l := by
+  induction n generalizing t l with
+  | zero => rw [multichoose_zero, mem_singleton] at ht; simp [ht]
+  | succ n ihn =>
+    induction l with
+    | nil => contradiction
+    | cons a l ihl =>
+      intro r hr
+      rw [mem_multichoose_succ_cons] at ht
+      cases ht with
+      | inl ht => simp [ihl ht r hr]
+      | inr ht =>
+        rcases ht with ⟨s, hs, ht⟩
+        rw [ht, mem_cons] at hr
+        cases hr with
+        | inl hr => simp [hr]
+        | inr hr => exact ihn hs r hr
 
--- theorem multichoose_sublist_multichoose {n : ℕ} {l₁ l₂ : List α} (hl : l₁ <+ l₂) :
---     multichoose n l₁ <+ multichoose n l₂ := sorry
+-- lemma mem_multichoose_cons {n : ℕ} {l t : List α} (ht : t ∈ multichoose n l) (x : α) :
+--     t ∈ multichoose n (x :: l) := by
+--   cases n with
+--   | zero => simpa using ht
+--   | succ n => simp [mem_multichoose_succ_cons, ht]
 
-lemma mem_multichoose_cons {n : ℕ} {l t : List α} (ht : t ∈ multichoose n l) (x : α) :
-    t ∈ multichoose n (x :: l) := by
-  cases n with
-  | zero => simpa using ht
-  | succ n => simp [mem_multichoose_succ_cons, ht]
-
--- TODO: Generalize and move? Or eliminate?
-/-- Two lists are disjoint if some property holds for all elements in one and none in the other. -/
-theorem disjoint_of_forall_left {p : α → Prop} {l₁ l₂ : List α}
-    (hl₁ : ∀ x ∈ l₁, p x) (hl₂ : ∀ x ∈ l₂, ¬p x) : Disjoint l₁ l₂ :=
-  fun x hx₁ hx₂ => hl₂ x hx₂ (hl₁ x hx₁)
-
-/-- Two lists are disjoint if some property holds for all elements in one and none in the other. -/
-theorem disjoint_of_forall_right {p : α → Prop} {l₁ l₂ : List α}
-    (h₁ : ∀ x ∈ l₁, ¬p x) (h₂ : ∀ x ∈ l₂, p x) : Disjoint l₁ l₂ :=
-  (disjoint_of_forall_left h₂ h₁).symm
+theorem multichoose_sublist_multichoose {n : ℕ} {l₁ l₂ : List α} (hl : l₁ <+ l₂) :
+    multichoose n l₁ <+ multichoose n l₂ := by
+  induction n generalizing l₁ l₂ with
+  | zero => simp
+  | succ n ihn =>
+    induction hl with
+    | slnil => simp
+    | @cons l₁ l₂ x _ ih => exact ih.trans (by simp)
+    | @cons₂ l₁ l₂ x hl ih =>
+      simp only [multichoose_succ_cons]
+      exact ih.append ((ihn (hl.cons₂ x)).map (cons x))
 
 /-- If the list of elements contains no duplicates, then `multichoose` contains no duplicates. -/
 theorem nodup_multichoose {n : ℕ} {l : List α} (hl : Nodup l) : Nodup (multichoose n l) := by
@@ -180,30 +178,28 @@ theorem nodup_multichoose {n : ℕ} {l : List α} (hl : Nodup l) : Nodup (multic
   | succ n ihn =>
     induction l with
     | nil => simp
-    | cons x xs ihl =>
+    | cons x l ihl =>
+      rw [multichoose_succ_cons]
       specialize ihn hl
-      simp at hl
+      rw [nodup_cons] at hl
       specialize ihl hl.2
-      simp [multichoose_succ_cons]
       refine Nodup.append ihl (ihn.map cons_injective) ?_
-      refine disjoint_of_forall_right (p := fun l => x ∈ l) ?_ (by simp)
-      simp
-      intro y hy hx
-      refine hl.1 ?_
-      exact mem_of_mem_multichoose hy x hx
+      have hx {t} : x :: t ∉ multichoose n.succ l :=
+        fun ht ↦ hl.1 (mem_of_mem_multichoose ht x (mem_cons_self x t))
+      simp [disjoint_right, hx]
 
 /-- If a list has no duplicates, then two lists in `multichoose` are a permutation iff equal. -/
 theorem perm_mem_multichoose_iff_eq_of_nodup [DecidableEq α] {n : ℕ} {l : List α} (hl : Nodup l)
     {t s : List α} (ht : t ∈ multichoose n l) (hs : s ∈ multichoose n l) :
     t ~ s ↔ t = s := by
   induction n generalizing s t l with
-  | zero => simp at ht hs; simp [ht, hs]
+  | zero => simp only [multichoose_zero, mem_singleton] at ht hs; simp [ht, hs]
   | succ n ihn =>
     induction l with
-    | nil => simp at ht
-    | cons x xs ihl =>
+    | nil => contradiction
+    | cons x l ihl =>
       specialize @ihn _ hl
-      simp at hl
+      rw [nodup_cons] at hl
       specialize ihl hl.2
       cases t with
       | nil => simp [eq_comm]
@@ -213,33 +209,33 @@ theorem perm_mem_multichoose_iff_eq_of_nodup [DecidableEq α] {n : ℕ} {l : Lis
         | cons c cs =>
           -- Must consider four cases:
           -- (1) `t` and `s` both use `x` (induction on `n`)
-          -- (2) `t` and `s` both use only `xs` (induction on `l`)
+          -- (2) `t` and `s` both use only `l` (induction on `l`)
           -- (3,4) only one of `t` and `s` uses `x` (not equal)
-          simp [cons_mem_multichoose_succ_cons] at ht hs
+          simp only [mem_multichoose_succ_cons, cons.injEq, exists_eq_right_right'] at ht hs
           cases ht with
           | inr ht =>
             cases hs with
             | inr hs =>
               -- (1) `t` and `s` both use `x` (induction on `n`)
-              simpa [ht.1, hs.1] using ihn ht.2 hs.2
+              simp [ht.2, hs.2, ihn ht.1 hs.1]
             | inl hs =>
               -- (3,4) only one of `t` and `s` uses `x` (not equal)
-              rw [ht.1]
+              rw [ht.2]
               replace hs := mem_of_mem_multichoose hs
-              simp at hs
+              simp only [mem_cons, forall_eq_or_imp] at hs
               have hc : x ≠ c := fun hx => by rw [← hx] at hs; exact hl.1 hs.1
               have hcs : x ∉ cs := fun hx => hl.1 (hs.2 x hx)
               simp [cons_perm_iff_perm_erase, hc, hcs]
           | inl ht =>
             cases hs with
             | inl hs =>
-              -- (2) `t` and `s` both use only `xs` (induction on `l`)
+              -- (2) `t` and `s` both use only `l` (induction on `l`)
               exact ihl ht hs
             | inr hs =>
               -- (3,4) only one of `t` and `s` uses `x` (not equal)
-              rw [hs.1]
+              rw [hs.2]
               replace ht := mem_of_mem_multichoose ht
-              simp at ht
+              simp only [mem_cons, forall_eq_or_imp] at ht
               have hb : x ≠ b := fun hx => by rw [← hx] at ht; exact hl.1 ht.1
               have hbs : x ∉ bs := fun hx => hl.1 (ht.2 x hx)
               rw [perm_comm, eq_comm]
@@ -295,46 +291,22 @@ theorem exists_perm_mem_multichoose_iff [DecidableEq α] {n : ℕ} {l : List α}
       (fun x hx ↦ mem_of_mem_multichoose hs x (hst.mem_iff.mpr hx))
   · exact fun h ↦ exists_perm_mem_multichoose h.1 h.2
 
--- TODO(jvlmdr): Should these be in `std`? Or eliminate?
-
-/-- `join` is a sublist of `join` if all pairs are sublists. -/
-theorem Sublist.join_of_forall_sublist {s l : List (List α)} (h_len : s.length ≤ l.length)
-    (h_sub : ∀ p ∈ List.zip s l, p.1 <+ p.2) : List.join s <+ List.join l := by
-  induction s generalizing l with
-  | nil => simp
-  | cons x s ih =>
-    cases l with
-    | nil => contradiction
-    | cons y l =>
-      simp [Nat.succ_le_succ_iff] at h_sub h_len ⊢
-      refine List.Sublist.append h_sub.1 ?_
-      exact ih h_len (fun p => h_sub.2 p.1 p.2)
-
-/-- `join` is a sublist of `join` if all pairs are sublists. -/
-theorem Sublist.join_map_of_forall_sublist {β : Type*} {f g : β → List α} {l : List β}
-    (h_sub : ∀ t, f t <+ g t) : List.join (l.map f) <+ List.join (l.map g) := by
-  refine join_of_forall_sublist (by simp) ?_
-  simp [zip_map']
-  intro t _
-  exact h_sub t
-
 /-- The `multichoose` list is a sublist of `sublistsLen n` with all elements repeated `n` times. -/
-theorem multichoose_sublist_sublistsLen_join_map_replicate {n : ℕ} {l : List α} :
+theorem multichoose_sublist_sublistsLen_join_map_replicate' {n : ℕ} {l : List α} :
     multichoose n l <+ sublistsLen n (l.map (replicate n)).join := by
   induction n generalizing l with
   | zero => simp
   | succ n ihn =>
     induction l with
     | nil => simp
-    | cons x xs ihl =>
-      simp [multichoose_succ_cons]
+    | cons x l ihl =>
+      simp only [join, replicate, cons_append]
+      rw [multichoose_succ_cons, sublistsLen_succ_cons]
       refine Sublist.append ?_ ?_
-      · refine Sublist.trans ihl ?_
-        exact sublistsLen_sublist_of_sublist n.succ (by simp)
-      · refine Sublist.map (cons x) ?_
-        refine Sublist.trans ihn ?_
-        refine sublistsLen_sublist_of_sublist n ?_
+      · refine ihl.trans (sublistsLen_sublist_of_sublist n.succ ?_)
         simp
-        exact Sublist.join_map_of_forall_sublist (by simp)
+      · refine Sublist.map (cons x) ?_
+        refine ihn.trans (sublistsLen_sublist_of_sublist n ?_)
+        simp [Sublist.join_map]
 
 end List

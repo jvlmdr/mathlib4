@@ -242,4 +242,11 @@ lemma sublist_join (l : List (List α)) {s : List α} (hs : s ∈ l) :
       simp only [join_cons]
       exact sublist_append_of_sublist_right (ht h)
 
+/-- If one map produces sublists of another, `join` is a sublist. -/
+theorem Sublist.join_map {f g : α → List β} {l : List α}
+    (h : ∀ t, f t <+ g t) : (l.map f).join <+ (l.map g).join := by
+  induction l with
+  | nil => rfl
+  | cons x l ih => exact (h x).append ih
+
 end List
