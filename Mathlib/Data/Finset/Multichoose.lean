@@ -20,7 +20,7 @@ variable {α : Type*} [DecidableEq α]
 
 /-- Finds all unique multisets of cardinality `n` formed using the elements of `s`. -/
 def multichoose (n : ℕ) (s : Finset α) : Finset (Multiset α) :=
-  ⟨Multiset.multichoose n s.1, Multiset.nodup_multichoose s.nodup⟩
+  ⟨Multiset.multichoose n s.1, Multiset.Nodup.multichoose s.nodup⟩
 
 lemma multichoose_val {n : ℕ} {s : Finset α} :
     (multichoose n s).val = Multiset.multichoose n s.val := rfl

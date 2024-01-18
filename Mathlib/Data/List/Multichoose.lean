@@ -171,7 +171,7 @@ theorem multichoose_mono {n : ℕ} {l₁ l₂ : List α} (hl : l₁ <+ l₂) :
       exact ih.append ((ihn (hl.cons₂ x)).map (cons x))
 
 /-- If the list of elements contains no duplicates, then `multichoose` contains no duplicates. -/
-theorem nodup_multichoose {n : ℕ} {l : List α} (hl : Nodup l) : Nodup (multichoose n l) := by
+theorem Nodup.multichoose {n : ℕ} {l : List α} (hl : Nodup l) : Nodup (l.multichoose n) := by
   induction n generalizing l with
   | zero => simp
   | succ n ihn =>
@@ -182,8 +182,8 @@ theorem nodup_multichoose {n : ℕ} {l : List α} (hl : Nodup l) : Nodup (multic
       specialize ihn hl
       rw [nodup_cons] at hl
       specialize ihl hl.2
-      refine Nodup.append ihl (ihn.map cons_injective) ?_
-      have hx {t} : x :: t ∉ multichoose n.succ l := fun ht ↦
+      refine ihl.append (ihn.map cons_injective) ?_
+      have hx {t} : x :: t ∉ l.multichoose n.succ := fun ht ↦
         hl.1 (mem_of_mem_multichoose ht x (mem_cons_self x t))
       simp [disjoint_right, hx]
 
