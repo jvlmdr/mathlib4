@@ -269,23 +269,21 @@ theorem count_multichoose_card {s t : Multiset α} :
       by_cases hyt : y ∈ t
       · have ht' : ∃ t', y ::ₘ t' = t := ⟨t.erase y, cons_erase hyt⟩
         rcases ht' with ⟨t', ht'⟩
-        rw [← ht']
+        rw [← ht'] at hn ⊢
         -- Split `y` term from rhs product.
         rw [toFinset_cons, ← Finset.prod_erase_mul _ _ (Finset.mem_insert_self y _)]
         simp only [Finset.erase_insert_eq_erase, count_cons_self]
         rw [Nat.multichoose_succ_succ, mul_add]
         rw [count_cons_multichoose_succ_cons_same]
         refine congrArg₂ _ ?_ ?_
-        · rw [ihs]
-          swap; rw [ht']; exact hn
+        · rw [ihs hn]
           -- Split `y` term from lhs product.
           rw [toFinset_cons, ← Finset.prod_erase_mul _ _ (Finset.mem_insert_self y _)]
           refine congrArg₂ _ ?_ (by simp)
           refine Finset.prod_congr (by simp) ?_
           intro x hx
           simp [Finset.ne_of_mem_erase hx]
-        · rw [ihn]
-          swap; rw [← ht'] at hn; simpa using hn
+        · rw [ihn (by simpa using hn)]
           -- There may or may not be a `y` term in the lhs product.
           by_cases hyt' : y ∈ t'
           · rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt')]
@@ -304,7 +302,7 @@ theorem count_multichoose_card {s t : Multiset α} :
         have hxy : x ≠ y := fun hxy ↦ hyt (by rw [← hxy]; exact mem_dedup.mp hx)
         simp [hxy]
 
-theorem count_multichoose_of_card_ne {n : ℕ} {s t : Multiset α} (hn : card t ≠ n) :
+lemma count_multichoose_of_card_ne {n : ℕ} {s t : Multiset α} (hn : card t ≠ n) :
     (multichoose n s).count t = 0 := by simp [hn]
 
 theorem count_multichoose {n : ℕ} {s t : Multiset α} :
@@ -312,7 +310,7 @@ theorem count_multichoose {n : ℕ} {s t : Multiset α} :
     if card t = n then ∏ x in toFinset t, Nat.multichoose (s.count x) (t.count x) else 0 := by
   by_cases hn : card t = n
   · rw [← hn, count_multichoose_card]; simp
-  · rw [count_multichoose_of_card_ne hn]; simp [hn]
+  · simp [hn]
 
 @[simp]
 theorem card_multichoose {n : ℕ} {s : Multiset α} :
@@ -366,8 +364,7 @@ theorem count_powerset {s : Multiset α} {t : Multiset α} :
       rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt)]
       rw [count_cons_self]
       conv => rhs; rhs; rw [← cons_erase hyt, count_cons_self]
-      rw [Nat.choose_succ_succ', mul_add]
-      rw [add_comm]
+      rw [Nat.choose_succ_succ', mul_add, add_comm]
       refine congrArg₂ _ ?_ ?_
       · have ht' : ∃ t', y ::ₘ t' = t := ⟨t.erase y, cons_erase hyt⟩
         rcases ht' with ⟨t', ht'⟩
@@ -398,104 +395,89 @@ theorem count_powerset {s : Multiset α} {t : Multiset α} :
       have hxy : x ≠ y := fun hxy ↦ hyt (by rw [← hxy]; exact mem_dedup.mp hx)
       simp [hxy]
 
-theorem count_powersetAuxCard_cons {n : ℕ} {y : α} {l : List α} {t : Multiset α} :
-    List.count t (powersetCardAux n.succ (y :: l)) =
-    List.count t (powersetCardAux n.succ l) +
-      if y ∈ t then List.count (t.erase y) (powersetCardAux n l) else 0 := by
-  simp
-  by_cases h_mem : y ∈ t <;> simp [h_mem]
-  · conv => lhs; rw [← cons_erase h_mem]
-    exact List.count_map_of_injective _ _ cons_injective_right _
-  · simp [List.count_eq_zero]
-    intro r _ _ ht
-    simp [← ht] at h_mem
+end Powerset
 
-theorem count_powersetCardAux_of_card_eq {n : ℕ} {l : List α} {t : Multiset α} (htn : card t = n) :
-    List.count t (powersetCardAux n l) = ∏ x in toFinset t, Nat.choose (l.count x) (t.count x) := by
-  induction n generalizing t l with
-  | zero => simp at htn; simp [htn]
+section PowersetCard
+
+lemma count_powersetCard_succ_cons_of_mem {n : ℕ} {x : α} {s t : Multiset α} (hx : x ∈ t) :
+    count t (powersetCard n.succ (x ::ₘ s)) =
+    count t (powersetCard n.succ s) + count (t.erase x) (powersetCard n s) := by
+  rw [powersetCard_cons, count_add, add_right_inj]
+  conv => lhs; rw [← cons_erase hx]
+  exact count_map_eq_count' _ _ cons_injective_right _
+
+lemma count_powersetCard_succ_cons_of_not_mem {n : ℕ} {x : α} {s t : Multiset α} (hx : x ∉ t) :
+    count t (powersetCard n.succ (x ::ₘ s)) = count t (powersetCard n.succ s) := by
+  rw [powersetCard_cons, count_add, add_right_eq_self]
+  rw [count_eq_zero, mem_map, not_exists]
+  intro u
+  rw [not_and]
+  intro _ ht
+  refine hx ?_
+  rw [← ht]
+  exact mem_cons_self x u
+
+/-- The multiplicity of elements in `powersetCard`. -/
+theorem count_powersetCard_card {s t : Multiset α} :
+    count t (powersetCard (card t) s) = ∏ x in toFinset t, Nat.choose (s.count x) (t.count x) := by
+  generalize hn : card t = n
+  induction n generalizing t s with
+  | zero => simp [card_eq_zero.mp hn]
   | succ n ihn =>
-    induction l generalizing t with
-    | nil =>
-      simp
+    induction s using Multiset.induction generalizing t with
+    | empty =>
+      replace hn : ∃ x, x ∈ t := by rw [← card_pos_iff_exists_mem]; rw [hn]; exact Nat.succ_pos n
+      rcases hn with ⟨x, hx⟩
+      simp only [card_zero, Nat.zero_lt_succ, powersetCard_eq_empty, nodup_zero, count_zero]
       symm
-      rw [Finset.prod_eq_zero_iff]
-      simp [Nat.choose_eq_zero_iff, count_pos]
-      rw [← card_pos_iff_exists_mem]
-      simp [htn]
-    | cons y l ihl =>
-      rw [count_powersetAuxCard_cons]
-      by_cases h_mem : y ∈ t <;> simp [h_mem]
-      · rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr h_mem)]
-        rw [List.count_cons_self]
-        conv => rhs; rhs; rw [← cons_erase h_mem, count_cons_self]
-        rw [Nat.choose_succ_succ, mul_add]
-        conv => rhs; rw [add_comm]  -- `powersetCardAux` uses the reverse order.
+      refine Finset.prod_eq_zero (mem_toFinset.mpr hx) ?_
+      rw [Nat.choose_eq_zero_iff]
+      exact count_pos.mpr hx
+    | @cons y s ihs =>
+      by_cases hyt : y ∈ t
+      · rw [count_powersetCard_succ_cons_of_mem hyt]
+        rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt)]
+        rw [count_cons_self]
+        conv => rhs; rhs; rw [← cons_erase hyt, count_cons_self]
+        rw [Nat.choose_succ_succ', mul_add, add_comm]
         refine congrArg₂ _ ?_ ?_
-        · rw [ihl htn]
-          rw [count_erase_self]
-          rw [Nat.sub_one, Nat.succ_pred (count_ne_zero.mpr h_mem)]
-          rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr h_mem)]
-          refine congrArg₂ _ ?_ rfl
-          refine Finset.prod_congr rfl ?_
-          intro x hx
-          rw [Finset.mem_erase] at hx
-          simp [hx.1]
-        · rw [ihn (by simp [htn, h_mem])]
-          by_cases h_mem' : y ∈ erase t y
-          · rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr h_mem')]
+        · have ht' : ∃ t', y ::ₘ t' = t := ⟨t.erase y, cons_erase hyt⟩
+          rcases ht' with ⟨t', ht'⟩
+          rw [← ht'] at hn ⊢
+          simp only [erase_cons_head, toFinset_cons, Finset.erase_insert_eq_erase]
+          rw [ihn (by simpa using hn)]
+          by_cases hyt' : y ∈ t'
+          · rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt')]
             refine congrArg₂ _ ?_ rfl
+            exact Finset.prod_congr rfl fun x hx ↦ by simp [Finset.mem_erase.mp hx]
+          · rw [count_eq_zero_of_not_mem hyt', Nat.choose_zero_right, mul_one]
             refine Finset.prod_congr ?_ ?_
-            · ext x
-              simp
-              intro hx
-              exact mem_erase_of_ne hx
-            · intro x hx
-              rw [Finset.mem_erase] at hx
-              simp [hx.1]
-          · -- `y ∉ erase t y`; the element for `y` disappears from the product
-            simp [h_mem']
-            refine Finset.prod_congr ?_ ?_
-            · ext x
-              simp
-              by_cases hx : x = y <;> simp [hx]
-              · exact h_mem'
-              · exact mem_erase_of_ne hx
-            · intro x hx
-              rw [Finset.mem_erase] at hx
-              simp [hx.1]
-      · -- `y ∉ t`; count within `y :: l` is same as count within `l`
-        rw [ihl htn]
+            · simp [hyt']
+            · exact fun x hx ↦ by simp [Finset.mem_erase.mp hx]
+        · rw [ihs hn]
+          rw [count_erase_self, Nat.sub_add_cancel (count_pos.mpr hyt)]
+          rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt)]
+          refine congrArg₂ _ ?_ rfl
+          exact Finset.prod_congr rfl fun x hx ↦ by simp [Finset.mem_erase.mp hx]
+      · rw [count_powersetCard_succ_cons_of_not_mem hyt]
+        rw [ihs hn]
         refine Finset.prod_congr rfl ?_
-        simp
         intro x hx
-        rw [List.count_cons_of_ne]
-        intro hxy
-        rw [hxy] at hx
-        exact h_mem hx
+        have hxy : x ≠ y := fun hxy ↦ hyt (by rw [← hxy]; exact mem_dedup.mp hx)
+        simp [hxy]
 
-theorem count_powersetCardAux {n : ℕ} {l : List α} {t : Multiset α} :
-    (powersetCardAux n l).count t =
-    if card t = n then ∏ x in toFinset t, Nat.choose (l.count x) (t.count x) else 0 := by
-  by_cases h : card t = n <;> simp [h]
-  exact count_powersetCardAux_of_card_eq h
+lemma count_powersetCard_of_card_ne {n : ℕ} {s t : Multiset α} (hn : card t ≠ n) :
+    count t (powersetCard n s) = 0 := by simp [hn]
 
 /-- The multiplicity of elements in `powersetCard`. -/
 theorem count_powersetCard {n : ℕ} {s : Multiset α} {t : Multiset α} :
     (powersetCard n s).count t =
-    if card t = n then ∏ x in toFinset t, Nat.choose (s.count x) (t.count x) else 0 :=
-  Quotient.inductionOn s fun _ => by
-    simp [Multiset.powersetCard_coe']
-    exact count_powersetCardAux
+    if card t = n then ∏ x in toFinset t, Nat.choose (s.count x) (t.count x) else 0 := by
+  by_cases hn : card t = n
+  · rw [← hn, count_powersetCard_card]; simp
+  · simp [hn]
 
-/-- The multiplicity of elements in `powersetCard`. -/
-theorem count_powersetCard_of_card_eq {n : ℕ} {s : Multiset α} {t : Multiset α} (ht : card t = n) :
-    (powersetCard n s).count t = ∏ x in toFinset t, Nat.choose (s.count x) (t.count x) :=
-  Quotient.inductionOn s fun l => by
-    simp [Multiset.powersetCard_coe']
-    rw [count_powersetCardAux_of_card_eq ht]
-
-end Powerset
+end PowersetCard
 
 /-- Given two multisets with `s ≤ t`, we have `multichoose n s ≤ multichoose n t`. -/
 theorem multichoose_mono {n : ℕ} : Monotone (multichoose n (α := α)) := by
@@ -505,39 +487,43 @@ theorem multichoose_mono {n : ℕ} : Monotone (multichoose n (α := α)) := by
   by_cases hn : card u = n
   · rw [← hn]
     simp only [count_multichoose_card]
-    refine Finset.prod_le_prod (by simp) ?_
-    intro y _
-    exact Nat.multichoose_le_multichoose (count y u) (h y)
+    exact Finset.prod_le_prod (by simp) fun y _ ↦ Nat.multichoose_le_multichoose (count y u) (h y)
   · simp [count_multichoose_of_card_ne hn]
 
-theorem multichoose_le_powersetCard_nsmul {n : ℕ} {s : Multiset α} :
+/-- `multichoose n` is a subset of `powersetCard` with all inputs repeated `n` times. -/
+theorem multichoose_le_powersetCard_nsmul (n : ℕ) (s : Multiset α) :
     multichoose n s ≤ powersetCard n (n • s) := by
   cases n with
   | zero => simp
   | succ n =>
     rw [le_iff_count]
     intro t
-    rw [count_multichoose, count_powersetCard]
-    by_cases ht : card t = n.succ <;> simp [ht]
-    refine Finset.prod_le_prod (by simp) ?_
-    simp
-    intro x hxt
-    by_cases hxs : x ∈ s
-    · rw [Nat.multichoose_eq]
-      refine Nat.choose_le_choose _ ?_
-      simp [Nat.succ_max_succ]
-      rw [Nat.succ_mul]
-      rw [add_rotate]
-      rw [add_assoc]
-      simp
-      refine le_trans (count_le_card _ _) ?_
-      rw [ht]
-      rw [add_comm]
-      rw [Nat.succ_le_succ_iff]
-      exact Nat.le_mul_of_pos_right n (count_pos.mpr hxs)
-    · simp [hxs]
-      rw [Nat.choose_eq_zero_of_lt (count_pos.mpr hxt)]
-      rw [Nat.multichoose_zero_eq_zero_of_ne]
-      exact count_ne_zero.mpr hxt
+    by_cases hn : card t = n.succ
+    · rw [← hn, count_multichoose_card, count_powersetCard_card]
+      refine Finset.prod_le_prod (by simp) ?_
+      intro x hx
+      rw [hn]
+      rw [count_nsmul]
+      cases count x s with
+      | zero =>
+        rw [mem_toFinset, ← count_ne_zero] at hx
+        rw [Nat.multichoose_zero_eq_zero_of_ne hx]
+        exact Nat.zero_le _
+      | succ m =>
+        rw [Nat.multichoose_succ_eq]
+        refine Nat.choose_le_choose _ ?_
+        rw [add_comm]
+        rw [Nat.succ_mul, Nat.mul_succ]
+        rw [Nat.add_succ, ← Nat.succ_add]
+        refine Nat.add_le_add_right ?_ m
+        refine le_trans (count_le_card x t) ?_
+        rw [hn]
+        exact Nat.succ_le_succ (Nat.le_add_left n (n * m))
+    · simp [hn]
+
+/-- `multichoose n` is a subset of `powerset` with all inputs repeated `n` times. -/
+theorem multichoose_le_powerset_nsmul {n : ℕ} {s : Multiset α} :
+    multichoose n s ≤ powerset (n • s) :=
+  le_trans (multichoose_le_powersetCard_nsmul n s) (powersetCard_le_powerset n (n • s))
 
 end Multiset

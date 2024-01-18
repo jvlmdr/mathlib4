@@ -435,11 +435,9 @@ theorem multichoose_le_multichoose {a b : ℕ} (c : ℕ) (h : a ≤ b) :
 theorem multichoose_zero_eq_zero_iff {k : ℕ} : multichoose 0 k = 0 ↔ k ≠ 0 := by
   cases k <;> simp
 
+@[simp]
 theorem multichoose_zero_eq_zero_of_ne {k : ℕ} (hk : k ≠ 0) : multichoose 0 k = 0 :=
   multichoose_zero_eq_zero_iff.mpr hk
-
-theorem multichoose_zero_eq_zero_of_pos {k : ℕ} (hk : 0 < k) : multichoose 0 k = 0 :=
-  multichoose_zero_eq_zero_iff.mpr (pos_iff_ne_zero.mp hk)
 
 @[simp]
 theorem multichoose_eq_zero_iff {n k : ℕ} : multichoose n k = 0 ↔ n = 0 ∧ k ≠ 0 := by
