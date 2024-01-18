@@ -77,6 +77,16 @@ variable {α : Type*} [DecidableEq α]
 
 namespace Multiset
 
+-- TODO: Move or eliminate.
+theorem range_toFinset {n : ℕ} : (List.range n).toFinset = Finset.range n := by
+  simp [Finset.ext_iff]
+
+-- TODO: Move or eliminate.
+theorem ofList_join {l : List (List α)} :
+    (l.join : Multiset α) = List.sum (l.map (↑)) := by
+  ext x
+  simp [List.count_join, Finset.sum_list_map_count, count_sum']
+
 /-!
 ### Auxiliary definition
 
@@ -105,13 +115,6 @@ theorem mem_multichooseAux_iff {n : ℕ} {l : List α} {t : Multiset α} :
     t ∈ multichooseAux n l ↔ card t = n ∧ ∀ x ∈ t, x ∈ l :=
   Quotient.inductionOn t fun t ↦ by simp [multichooseAux, List.exists_perm_mem_multichoose_iff]
 
-@[simp]
-theorem multichooseAux_singleton {n : ℕ} {x : α} :
-    multichooseAux n [x] = [Multiset.replicate n x] := by
-  induction n with
-  | zero => simp
-  | succ n ihn => simp [ihn]
-
 theorem multichooseAux_cons_eq_join {n : ℕ} {x : α} {l : List α} :
     multichooseAux n (x :: l) = List.join ((List.range n.succ).map
       fun k ↦ (multichooseAux (n - k) l).map (replicate k x + ·)) := by
@@ -138,7 +141,6 @@ theorem multichooseAux_perm {n : ℕ} {l₁ l₂ : List α} (hl : l₁ ~ l₂) :
     intro t
     simp only [Function.comp_def, List.map_map, List.count_join]
     -- Convert to `Finset.sum` and reorder.
-    have range_toFinset {n} : (List.range n).toFinset = Finset.range n := by simp [Finset.ext_iff]
     simp only [← List.sum_toFinset _ (List.nodup_range _), range_toFinset]
     rw [Finset.sum_comm' (t' := Finset.range n.succ) (s' := fun k ↦ Finset.range (n - k).succ)]
     · simp only [← add_assoc]
@@ -173,13 +175,9 @@ theorem multichoose_coe (n : ℕ) (l : List α) :
   rfl
 
 @[simp]
-theorem multichoose_zero {s : Multiset α} : multichoose 0 s = {0} :=
-  Quotient.inductionOn s fun l ↦ by simp [multichoose_coe']
-
-@[simp]
 theorem multichoose_succ_zero {n : ℕ} : multichoose n.succ (0 : Multiset α) = 0 := by
   generalize hs : (0 : Multiset α) = s
-  rw [eq_comm] at hs
+  symm at hs
   revert hs
   refine Quotient.inductionOn s ?_
   simp [multichoose_coe']
@@ -195,6 +193,23 @@ theorem mem_multichoose_iff {n : ℕ} {s : Multiset α} {t : Multiset α} :
     t ∈ multichoose n s ↔ card t = n ∧ ∀ x ∈ t, x ∈ s :=
   Quotient.inductionOn s fun l ↦ by simp [multichoose_coe', mem_multichooseAux_iff]
 
+@[simp]
+theorem multichoose_zero {s : Multiset α} : multichoose 0 s = {0} :=
+  Quotient.inductionOn s fun l ↦ by simp [multichoose_coe']
+
+@[simp]
+theorem multichoose_singleton {n : ℕ} {x : α} : multichoose n {x} = {replicate n x} := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    rw [← cons_zero x, multichoose_succ_cons]
+    simp [ih]
+
+@[simp]
+theorem multichoose_one {s : Multiset α} : multichoose 1 s = s.map ({·}) :=
+  Quotient.inductionOn s fun l ↦ by
+    simp [multichoose_coe', multichooseAux, List.map_reverse, Function.comp_def]
+
 theorem Nodup.multichooseAux {n : ℕ} {l : List α} (hl : List.Nodup l) :
     List.Nodup (multichooseAux n l) := by
   rw [Multiset.multichooseAux, List.nodup_map_iff_inj_on hl.multichoose]
@@ -205,16 +220,10 @@ theorem Nodup.multichooseAux {n : ℕ} {l : List α} (hl : List.Nodup l) :
 theorem Nodup.multichoose {n : ℕ} {s : Multiset α} : Nodup s → Nodup (multichoose n s) :=
   Quotient.inductionOn s fun l hl ↦ by simp [multichoose_coe', multichooseAux hl]
 
-theorem ofList_join {l : List (List α)} :
-    (l.join : Multiset α) = List.sum (l.map (↑)) := by
-  ext x
-  simp [List.count_join, Finset.sum_list_map_count, count_sum']
-
 theorem multichoose_cons_eq_sum {n : ℕ} {x : α} {s : Multiset α} :
     multichoose n (x ::ₘ s) =
     (Finset.range n.succ).sum fun k ↦ (multichoose (n - k) s).map (replicate k x + ·) :=
   Quotient.inductionOn s fun l ↦ by
-    have range_toFinset {n} : (List.range n).toFinset = Finset.range n := by simp [Finset.ext_iff]
     simp [multichoose_coe', multichooseAux_cons_eq_join, ofList_join,
       ← List.sum_toFinset _ (List.nodup_range _), range_toFinset]
 
@@ -241,6 +250,7 @@ theorem count_cons_multichoose_succ_cons_same {n : ℕ} {x : α} {s t : Multiset
     count (x ::ₘ t) (multichoose n.succ s) + count t (multichoose n (x ::ₘ s)) := by
   rw [count_multichoose_succ_cons_of_mem (mem_cons_self x t), erase_cons_head]
 
+@[simp]
 theorem count_multichoose_card {s t : Multiset α} :
     (multichoose (card t) s).count t =
     ∏ x in toFinset t, Nat.multichoose (s.count x) (t.count x) := by
@@ -304,21 +314,11 @@ theorem count_multichoose {n : ℕ} {s t : Multiset α} :
   · rw [← hn, count_multichoose_card]; simp
   · rw [count_multichoose_of_card_ne hn]; simp [hn]
 
+@[simp]
 theorem card_multichoose {n : ℕ} {s : Multiset α} :
     card (multichoose n s) = Nat.multichoose (card s) n :=
   Quotient.inductionOn s fun l ↦ by
     simp [multichoose_coe', multichooseAux, List.length_multichoose]
-
-theorem multichoose_singleton {n : ℕ} {x : α} : multichoose n {x} = {replicate n x} := by
-  induction n with
-  | zero => simp
-  | succ n ih =>
-    rw [← cons_zero x, multichoose_succ_cons]
-    simp [ih]
-
-theorem multichoose_one {s : Multiset α} : multichoose 1 s = s.map ({·}) :=
-  Quotient.inductionOn s fun l ↦ by
-    simp [multichoose_coe', multichooseAux, List.map_reverse, Function.comp_def]
 
 /-!
 ### Powerset
@@ -516,6 +516,7 @@ theorem count_powersetCard_of_card_eq {n : ℕ} {s : Multiset α} {t : Multiset 
 
 end Powerset
 
+/-- Given two multisets with `s ≤ t`, we have `multichoose n s ≤ multichoose n t`. -/
 theorem multichoose_mono {n : ℕ} : Monotone (multichoose n (α := α)) := by
   intro s t
   simp only [le_iff_count]
