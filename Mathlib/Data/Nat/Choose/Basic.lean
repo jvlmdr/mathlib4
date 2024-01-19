@@ -448,4 +448,30 @@ theorem multichoose_eq_zero_iff {n k : ℕ} : multichoose n k = 0 ↔ n = 0 ∧ 
     rw [add_succ_sub_one]
     simp [succ_eq_one_add]
 
+theorem multichoose_succ_eq {n k : ℕ} : multichoose n.succ k = choose (n + k) k := by
+  rw [multichoose_eq, succ_add_sub_one]
+
+theorem multichoose_succ_mul_symm {n k : ℕ} :
+    multichoose n k.succ * k.succ = multichoose n.succ k * n := by
+  simp [multichoose_eq, choose_succ_right_eq]
+
+theorem multichoose_succ_left_mul {n k : ℕ} :
+    multichoose n.succ k * n = multichoose n k * (n + k) := by
+  cases k with
+  | zero => simp
+  | succ k => rw [multichoose_succ_succ, mul_add, add_mul, multichoose_succ_mul_symm]
+
+theorem multichoose_succ_right_mul_succ {n k : ℕ} :
+    multichoose n k.succ * k.succ = multichoose n k * (n + k) :=
+  Eq.trans multichoose_succ_mul_symm multichoose_succ_left_mul
+
+theorem multichoose_eq' {n k : ℕ} (hn : n ≠ 0) :
+    multichoose n k = choose (n + k - 1) (n - 1) := by
+  cases n with
+  | zero => contradiction
+  | succ n => simp [multichoose_eq, choose_symm_add]
+
+theorem multichoose_succ_symm {n k : ℕ} : multichoose n.succ k = multichoose k.succ n := by
+  rw [multichoose_succ_eq, add_comm, choose_symm_add, multichoose_succ_eq]
+
 end Nat

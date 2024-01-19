@@ -37,40 +37,6 @@ Follows `Multiset.powersetCardAux` in using an auxiliary definition to then defi
 
 open scoped BigOperators List
 
--- TODO: Move (or remove if not required).
-namespace Nat
-
-theorem multichoose_succ_symm {n k : ℕ} : multichoose n.succ k = multichoose k.succ n := by
-  simp only [multichoose_eq, succ_add_sub_one]
-  rw [add_comm, choose_symm_add]
-
-theorem multichoose_eq' {n k : ℕ} (hn : n ≠ 0) :
-    multichoose n k = choose (n + k - 1) (n - 1) := by
-  cases n with
-  | zero => contradiction
-  | succ n => simp [multichoose_eq, choose_symm_add]
-
-theorem multichoose_succ_eq {n k : ℕ} : multichoose n.succ k = choose (n + k) k := by
-  rw [multichoose_eq, succ_add_sub_one]
-
-theorem multichoose_succ_mul_symm {n k : ℕ} :
-    multichoose n k.succ * k.succ = multichoose n.succ k * n := by
-  simp [multichoose_eq, choose_succ_right_eq]
-
-theorem multichoose_succ_left_mul {n k : ℕ} (h : 0 < n + k) :
-    multichoose n.succ k * n = multichoose n k * (n + k) := by
-  have := choose_mul_succ_eq (n + k - 1) k
-  simp only [Nat.sub_add_cancel h, Nat.add_sub_cancel] at this
-  rw [← multichoose_eq] at this
-  rw [multichoose_succ_eq]
-  exact this.symm
-
-theorem multichoose_succ_right_mul_succ {n k : ℕ} (h : 0 < n + k) :
-    multichoose n k.succ * k.succ = multichoose n k * (n + k) :=
-  Eq.trans multichoose_succ_mul_symm (multichoose_succ_left_mul h)
-
-end Nat
-
 variable {α : Type*} [DecidableEq α]
 
 namespace Multiset
