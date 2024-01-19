@@ -22,7 +22,8 @@ Describes the `Finset` of `Multiset`s of a given size obtained by selecting elem
 - `mem_multichoose_iff` : `t ∈ multichoose n s` iff `t` has cardinality `n` and all its elements
   are in `s`.
 
-- `multichoose_eq_toFinset_multichoose_val` is the unique elements of `Multiset.multichoose`.
+- `multichoose_eq_toFinset_multichoose_val` : `Finset.multichoose` is the unique elements of
+  `Multiset.multichoose`.
 - `multichoose_eq_toFinset_powersetCard_nsmul_val` : `Finset.multichoose` is the unique elements of
   `Multiset.powersetCard` with each element repeated `n` times.
 
@@ -110,9 +111,14 @@ theorem multichoose_mono {n : ℕ} : Monotone (multichoose n (α := α)) := by
   simp only [le_eq_subset, ← val_le_iff, multichoose_val]
   exact fun h ↦ Multiset.multichoose_mono h
 
-theorem mem_multichoose_iff_mem_powersetCard_nsmul_val {n : ℕ} {s : Finset α} {t : Multiset α} :
-    t ∈ multichoose n s ↔ t ∈ (n • s.val).powersetCard n := by
-  rw [mem_multichoose_iff, Multiset.mem_powersetCard]
+/--
+`Finset.multichoose` is the unique elements of `Multiset.powersetCard` with each element repeated
+`n` times.
+-/
+theorem multichoose_eq_toFinset_powersetCard_nsmul_val {n : ℕ} {s : Finset α} :
+    multichoose n s = (Multiset.powersetCard n (n • s.val)).toFinset := by
+  ext t
+  rw [mem_multichoose_iff, Multiset.mem_toFinset, Multiset.mem_powersetCard]
   rw [and_comm, and_congr_left_iff]
   intro hn
   rw [← hn, Multiset.le_iff_count]
@@ -132,22 +138,6 @@ theorem mem_multichoose_iff_mem_powersetCard_nsmul_val {n : ℕ} {s : Finset α}
     rw [imp_false]
     simpa [hxs] using hts
 
-/-- `Finset.multichoose` is the unique elements of `Multiset.multichoose`. -/
-theorem multichoose_eq_toFinset_multichoose_val {n : ℕ} {s : Finset α} :
-    multichoose n s = (s.val.multichoose n).toFinset := by
-  ext t
-  simp
-
-/--
-`Finset.multichoose` is the unique elements of `Multiset.powersetCard` with each element repeated
-`n` times.
--/
-theorem multichoose_eq_toFinset_powersetCard_nsmul_val {n : ℕ} {s : Finset α} :
-    multichoose n s = ((n • s.val).powersetCard n).toFinset := by
-  ext t
-  rw [Multiset.mem_toFinset]
-  exact mem_multichoose_iff_mem_powersetCard_nsmul_val
-
 end Finset
 
 theorem Multiset.toFinset_multichoose {n : ℕ} {s : Multiset α} :
@@ -155,3 +145,9 @@ theorem Multiset.toFinset_multichoose {n : ℕ} {s : Multiset α} :
   rw [← Finset.val_inj, toFinset_val]
   rw [Finset.multichoose_val, toFinset_val]
   exact dedup_multichoose
+
+/-- `Finset.multichoose` is the unique elements of `Multiset.multichoose`. -/
+theorem Finset.multichoose_eq_toFinset_multichoose_val {n : ℕ} {s : Finset α} :
+    multichoose n s = (Multiset.multichoose n s.val).toFinset := by
+  rw [← val_inj, Multiset.toFinset_multichoose]
+  simp
