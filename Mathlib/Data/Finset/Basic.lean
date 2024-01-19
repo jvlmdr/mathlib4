@@ -3486,6 +3486,10 @@ theorem toFinset_nonempty_iff (l : List α) : l.toFinset.Nonempty ↔ l ≠ [] :
   simp [Finset.nonempty_iff_ne_empty]
 #align list.to_finset_nonempty_iff List.toFinset_nonempty_iff
 
+@[simp]
+theorem toFinset_range {n : ℕ} : (List.range n).toFinset = Finset.range n := by
+  simp [Finset.ext_iff]
+
 end List
 
 namespace Finset

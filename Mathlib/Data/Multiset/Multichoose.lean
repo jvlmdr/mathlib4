@@ -75,16 +75,6 @@ variable {α : Type*} [DecidableEq α]
 
 namespace Multiset
 
--- TODO: Move or eliminate.
-theorem range_toFinset {n : ℕ} : (List.range n).toFinset = Finset.range n := by
-  simp [Finset.ext_iff]
-
--- TODO: Move or eliminate.
-theorem ofList_join {l : List (List α)} :
-    (l.join : Multiset α) = List.sum (l.map (↑)) := by
-  ext x
-  simp [List.count_join, Finset.sum_list_map_count, count_sum']
-
 /-!
 ### Auxiliary definition
 
@@ -139,7 +129,7 @@ theorem multichooseAux_perm {n : ℕ} {l₁ l₂ : List α} (hl : l₁ ~ l₂) :
     intro t
     simp only [Function.comp_def, List.map_map, List.count_join]
     -- Convert to `Finset.sum` and reorder.
-    simp only [← List.sum_toFinset _ (List.nodup_range _), range_toFinset]
+    simp only [← List.sum_toFinset _ (List.nodup_range _), List.toFinset_range]
     rw [Finset.sum_comm' (t' := Finset.range n.succ) (s' := fun k ↦ Finset.range (n - k).succ)]
     · simp only [← add_assoc]
       simp [add_comm (replicate _ y), Nat.sub_sub, Nat.add_comm]
@@ -239,8 +229,8 @@ theorem multichoose_cons_eq_sum {n : ℕ} {x : α} {s : Multiset α} :
     multichoose n (x ::ₘ s) =
     (Finset.range n.succ).sum fun k ↦ (multichoose (n - k) s).map (replicate k x + ·) :=
   Quotient.inductionOn s fun l ↦ by
-    simp [multichoose_coe', multichooseAux_cons_eq_join, ofList_join,
-      ← List.sum_toFinset _ (List.nodup_range _), range_toFinset]
+    simp [multichoose_coe', multichooseAux_cons_eq_join, ← coe_join, join,
+      ← List.sum_toFinset _ (List.nodup_range _)]
 
 theorem count_multichoose_cons_of_not_mem {n : ℕ} {x : α} {s t : Multiset α} (hx : x ∉ t) :
     count t (multichoose n (x ::ₘ s)) = count t (multichoose n s) := by
