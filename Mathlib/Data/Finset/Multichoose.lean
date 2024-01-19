@@ -30,9 +30,9 @@ Describes the `Finset` of `Multiset`s of a given size obtained by selecting elem
 
 open scoped BigOperators List
 
-namespace Finset
-
 variable {α : Type*} [DecidableEq α]
+
+namespace Finset
 
 /-- Finds all unique multisets of cardinality `n` formed using the elements of `s`. -/
 def multichoose (n : ℕ) (s : Finset α) : Finset (Multiset α) :=
@@ -149,3 +149,9 @@ theorem multichoose_eq_toFinset_powersetCard_nsmul_val {n : ℕ} {s : Finset α}
   exact mem_multichoose_iff_mem_powersetCard_nsmul_val
 
 end Finset
+
+theorem Multiset.toFinset_multichoose {n : ℕ} {s : Multiset α} :
+    (Multiset.multichoose n s).toFinset = Finset.multichoose n s.toFinset := by
+  rw [← Finset.val_inj, toFinset_val]
+  rw [Finset.multichoose_val, toFinset_val]
+  exact dedup_multichoose

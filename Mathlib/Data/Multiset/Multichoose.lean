@@ -233,6 +233,13 @@ theorem Nodup.multichooseAux {n : ℕ} {l : List α} (hl : List.Nodup l) :
 theorem Nodup.multichoose {n : ℕ} {s : Multiset α} : Nodup s → Nodup (multichoose n s) :=
   Quotient.inductionOn s fun l hl ↦ by simp [multichoose_coe', multichooseAux hl]
 
+theorem dedup_multichoose {n : ℕ} {s : Multiset α} :
+    dedup (multichoose n s) = multichoose n (dedup s) := by
+  rw [Nodup.ext]
+  · simp
+  · exact nodup_dedup (multichoose n s)
+  · exact (nodup_dedup s).multichoose
+
 theorem multichoose_cons_eq_sum {n : ℕ} {x : α} {s : Multiset α} :
     multichoose n (x ::ₘ s) =
     (Finset.range n.succ).sum fun k ↦ (multichoose (n - k) s).map (replicate k x + ·) :=
