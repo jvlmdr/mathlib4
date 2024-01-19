@@ -104,7 +104,11 @@ theorem multichoose_succ_insert {n : ℕ} {x : α} {s : Finset α} (hx : x ∉ s
   · rw [disjoint_val]
     exact disjoint_multichoose_succ_insert hx
 
--- TODO: Monotone.
+/-- `multichoose n` is monotone with respect to the input `Finset`. -/
+theorem multichoose_mono {n : ℕ} : Monotone (multichoose n (α := α)) := by
+  intro s t
+  simp only [le_eq_subset, ← val_le_iff, multichoose_val]
+  exact fun h ↦ Multiset.multichoose_mono h
 
 theorem mem_multichoose_iff_mem_powersetCard_nsmul_val {n : ℕ} {s : Finset α} {t : Multiset α} :
     t ∈ multichoose n s ↔ t ∈ (n • s.val).powersetCard n := by
