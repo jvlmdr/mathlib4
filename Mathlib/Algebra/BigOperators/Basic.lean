@@ -2481,6 +2481,91 @@ theorem prod_sum {α : Type*} {ι : Type*} [CommMonoid α] (f : ι → Multiset 
 #align multiset.prod_sum Multiset.prod_sum
 #align multiset.sum_sum Multiset.sum_sum
 
+lemma count_powerset_cons_of_mem {x : α} {s t : Multiset α} (hx : x ∈ t) :
+    count t (powerset (x ::ₘ s)) =
+    count t (powerset s) + count (t.erase x) (powerset s) := by
+  simp only [powerset_cons, count_add, add_right_inj]
+  conv => lhs; rw [← cons_erase hx]
+  exact count_map_eq_count' _ _ cons_injective_right _
+
+lemma count_powerset_cons_of_not_mem {x : α} {s t : Multiset α} (hx : x ∉ t) :
+    count t (powerset (x ::ₘ s)) = count t (powerset s) := by
+  rw [powerset_cons, count_add, add_right_eq_self]
+  rw [count_eq_zero, mem_map, not_exists]
+  intro u
+  rw [not_and]
+  intro _ ht
+  refine hx ?_
+  rw [← ht]
+  exact mem_cons_self x u
+
+/-- The multiplicity of elements in `powerset`. -/
+theorem count_powerset {s : Multiset α} {t : Multiset α} :
+    (powerset s).count t = ∏ x in toFinset t, Nat.choose (s.count x) (t.count x) := by
+  induction s using Multiset.induction generalizing t with
+  | empty =>
+    induction t using Multiset.induction with
+    | empty => simp
+    | @cons x t =>
+      rw [toFinset_cons]
+      rw [Finset.prod_eq_zero (Finset.mem_insert_self x _) (by simp)]
+      simp
+  | @cons y s ihs =>
+    -- rw [powerset_cons, count_add]
+    -- Split `y` term from rhs product if present.
+    by_cases hyt : y ∈ t
+    · rw [count_powerset_cons_of_mem hyt]
+      rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt)]
+      rw [count_cons_self]
+      conv => rhs; rhs; rw [← cons_erase hyt, count_cons_self]
+      rw [Nat.choose_succ_succ', mul_add, add_comm]
+      refine congrArg₂ _ ?_ ?_
+      · have ht' : ∃ t', y ::ₘ t' = t := ⟨t.erase y, cons_erase hyt⟩
+        rcases ht' with ⟨t', ht'⟩
+        rw [← ht']
+        rw [ihs]
+        rw [toFinset_cons, Finset.erase_insert_eq_erase]
+        by_cases hyt' : y ∈ t'
+        · rw [erase_cons_head, ← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt')]
+          refine congrArg₂ _ ?_ rfl
+          refine Finset.prod_congr rfl ?_
+          intro x hx
+          simp [Finset.mem_erase.mp hx]
+        · rw [erase_cons_head, count_eq_zero_of_not_mem hyt', Nat.choose_zero_right, mul_one]
+          refine Finset.prod_congr (by simp [hyt']) ?_
+          intro x hx
+          simp [Finset.mem_erase.mp hx]
+      · rw [ihs]
+        rw [← Finset.prod_erase_mul _ _ (mem_toFinset.mpr hyt)]
+        refine congrArg₂ _ ?_ ?_
+        · refine Finset.prod_congr rfl ?_
+          intro x hx
+          simp [Finset.ne_of_mem_erase hx]
+        · rw [count_erase_self, Nat.sub_add_cancel (count_pos.mpr hyt)]
+    · rw [count_powerset_cons_of_not_mem hyt]
+      rw [ihs]
+      refine Finset.prod_congr rfl ?_
+      intro x hx
+      have hxy : x ≠ y := fun hxy ↦ hyt (by rw [← hxy]; exact mem_dedup.mp hx)
+      simp [hxy]
+
+/-- The multiplicity of elements in `powersetCard`. -/
+theorem count_powersetCard_card {s t : Multiset α} :
+    count t (powersetCard (card t) s) = ∏ x in toFinset t, Nat.choose (s.count x) (t.count x) := by
+  rw [powersetCard_eq_filter_powerset, count_filter_of_pos (by rfl)]
+  exact count_powerset
+
+lemma count_powersetCard_of_card_ne {n : ℕ} {s t : Multiset α} (hn : card t ≠ n) :
+    count t (powersetCard n s) = 0 := by simp [hn]
+
+/-- The multiplicity of elements in `powersetCard`. -/
+theorem count_powersetCard {n : ℕ} {s : Multiset α} {t : Multiset α} :
+    (powersetCard n s).count t =
+    if card t = n then ∏ x in toFinset t, Nat.choose (s.count x) (t.count x) else 0 := by
+  by_cases hn : card t = n
+  · rw [← hn, count_powersetCard_card]; simp
+  · simp [hn]
+
 end Multiset
 
 namespace Nat

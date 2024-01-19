@@ -338,4 +338,24 @@ protected theorem Nodup.powersetCard {n : ℕ} {s : Multiset α} (h : Nodup s) :
   nodup_of_le (powersetCard_le_powerset _ _) (nodup_powerset.2 h)
 #align multiset.nodup.powerset_len Multiset.Nodup.powersetCard
 
+@[simp]
+theorem count_zero_powerset_eq_one [DecidableEq α] {s : Multiset α} : count 0 (powerset s) = 1 := by
+  induction s using Multiset.induction with
+  | empty => simp
+  | @cons x s ih => simp [ih]
+
+theorem powersetCard_eq_filter_powerset [DecidableEq α] {n : ℕ} {s : Multiset α} :
+    powersetCard n s = filter (fun t ↦ card t = n) (powerset s) := by
+  induction n generalizing s with
+  | zero =>
+    ext t
+    by_cases ht : t = 0 <;> simp [ht]
+  | succ n ihn =>
+    induction s using Multiset.induction with
+    | empty => simp [filter_eq_nil.mpr]
+    | @cons x s ihs =>
+      simp only [powersetCard_cons, powerset_cons, filter_add]
+      refine congrArg₂ _ ihs ?_
+      simp [ihn, map_filter, Function.comp_def]
+
 end Multiset
