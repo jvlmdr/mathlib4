@@ -25,11 +25,12 @@ elements in the output.
 - `card_multichoose` : The cardinality of `multichoose` matches `Nat.multichoose`.
 - `mem_multichoose_iff` : A `Multiset` belongs to `multichoose` iff its cardinality is `n` and all
   its elements appear in the input.
-- `multichoose_mono` : `multichoose` is monotone in its input `Multiset`.
 - `count_multichoose_card` : The multiplicity of a `Multiset` in `multichoose` is a product of
   `Nat.multichoose` using the multiplicity of its elements.
 - `count_powersetCard_of_card_eq` : Similarly, the multiplicity of a `Multiset` in `powersetCard` is
   a product of `Nat.choose` using the multiplicity of its elements.
+
+- `multichoose_mono` : `multichoose` is monotone in its input `Multiset`.
 - `multichoose_le_powersetCard_nsmul` : `multichoose n s` is a subset of `powersetCard n (n • s)`.
 
 ## Implementation notes
@@ -196,6 +197,16 @@ theorem mem_multichoose_iff {n : ℕ} {s : Multiset α} {t : Multiset α} :
 @[simp]
 theorem multichoose_zero {s : Multiset α} : multichoose 0 s = {0} :=
   Quotient.inductionOn s fun l ↦ by simp [multichoose_coe']
+
+@[simp]
+theorem multichoose_eq_zero_iff {n : ℕ} {s : Multiset α} :
+    multichoose n s = 0 ↔ n ≠ 0 ∧ s = 0 := by
+  induction n generalizing s with
+  | zero => simp
+  | succ n ih =>
+    induction s using Multiset.induction with
+    | empty => simp
+    | @cons x s _ => simp [ih]
 
 @[simp]
 theorem multichoose_singleton {n : ℕ} {x : α} : multichoose n {x} = {replicate n x} := by
