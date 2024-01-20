@@ -2748,6 +2748,14 @@ theorem count_eq_card_filter_eq [DecidableEq α] (s : Multiset α) (a : α) :
     s.count a = card (s.filter (a = ·)) := by rw [count, countP_eq_card_filter]
 #align multiset.count_eq_card_filter_eq Multiset.count_eq_card_filter_eq
 
+theorem card_sub_count_eq_card_filter_ne [DecidableEq α] (s : Multiset α) (a : α) :
+    card s - s.count a = card (s.filter (· ≠ a)) := by
+  rw [Nat.sub_eq_iff_eq_add' (count_le_card a s)]
+  conv => lhs; rw [← filter_add_not (· = a) s]
+  rw [card_add, add_left_inj]
+  simp only [eq_comm (b := a)]
+  rw [count_eq_card_filter_eq]
+
 /--
 Mapping a multiset through a predicate and counting the `True`s yields the cardinality of the set
 filtered by the predicate. Note that this uses the notion of a multiset of `Prop`s - due to the

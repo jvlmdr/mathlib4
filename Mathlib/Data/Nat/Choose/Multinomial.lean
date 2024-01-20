@@ -193,16 +193,16 @@ end Finsupp
 
 namespace Multiset
 
-variable {α : Type*}
+variable {α : Type*} [DecidableEq α]
 
 /-- Alternative definition of multinomial based on `Multiset` delegating to the
   finsupp definition
 -/
-def multinomial [DecidableEq α] (m : Multiset α) : ℕ :=
+def multinomial (m : Multiset α) : ℕ :=
   m.toFinsupp.multinomial
 #align multiset.multinomial Multiset.multinomial
 
-theorem multinomial_filter_ne [DecidableEq α] (a : α) (m : Multiset α) :
+theorem multinomial_filter_ne (a : α) (m : Multiset α) :
     m.multinomial = m.card.choose (m.count a) * (m.filter (a ≠ ·)).multinomial := by
   dsimp only [multinomial]
   convert Finsupp.multinomial_update a _
@@ -213,6 +213,12 @@ theorem multinomial_filter_ne [DecidableEq α] (a : α) (m : Multiset α) :
     · rw [Function.update_noteq h.symm, toFinsupp_apply]
     · rw [not_ne_iff.1 h, Function.update_same]
 #align multiset.multinomial_filter_ne Multiset.multinomial_filter_ne
+
+@[simp]
+theorem multinomial_zero : multinomial (0 : Multiset α) = 1 := rfl
+
+theorem multinomial_eq {m : Multiset α} : m.multinomial = Nat.multinomial m.toFinset m.count := by
+  simp [multinomial, Finsupp.multinomial_eq, toFinsupp]
 
 end Multiset
 
