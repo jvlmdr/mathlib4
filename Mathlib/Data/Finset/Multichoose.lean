@@ -30,6 +30,7 @@ Describes the `Finset` of `Multiset`s of a given size obtained by selecting elem
   `Multiset.powersetCard` with each element repeated `n` times.
 -/
 
+open Function.Embedding
 open scoped BigOperators List
 
 section Definition
@@ -188,7 +189,7 @@ theorem multichoose_eq_biUnion_multichoose_erase {k : ℕ} {s : Finset α} {x : 
 
 /-- Image of count-remove on `Finset.multichoose k s` as a `Finset`. -/
 def multichooseSplit (n : ℕ) (s : Finset α) (x : α) : Finset (ℕ × Multiset α) :=
-  (range n.succ).biUnion fun m ↦ (multichoose (n - m) (s.erase x)).map (Prod.mkRightEmbedding m)
+  (range n.succ).biUnion fun m ↦ (multichoose (n - m) (s.erase x)).map (sectr m (Multiset α))
 
 /--
 `multichooseSplit` is a `Finset` representation of
@@ -202,7 +203,7 @@ theorem mem_multichooseSplit_iff {n : ℕ} {s : Finset α} {x : α} {q : ℕ × 
 /-- The union in `multichooseSplit` is pairwise disjoint. -/
 theorem pairwiseDisjoint_multichooseSplit (n : ℕ) (s : Finset α) (x : α) :
     Set.PairwiseDisjoint ↑(range (Nat.succ n)) fun m ↦
-      ((s.erase x).multichoose (n - m)).map (Prod.mkRightEmbedding m) := by
+      ((s.erase x).multichoose (n - m)).map (sectr m (Multiset α)) := by
   intro i _ j _ hij
   simp [disjoint_iff_ne, hij, -mem_multichoose_iff]
 
@@ -373,7 +374,7 @@ theorem pow_sum {p : ℕ} {s : Finset ι} {f : ι → α} :
     suffices : (Multiset.replicate m a + t).multinomial = p.choose m * t.multinomial ∧
         ∏ i in insert a s, f i ^ (Multiset.replicate m a + t).count i =
           f a ^ m * ∏ i in s, f i ^ t.count i
-    · simp only [this, Nat.cast_mul, Prod.mkRightEmbedding_apply]
+    · simp only [this, Nat.cast_mul, sectr_apply]
       ring_nf
     rw [mem_multichoose_iff] at ht
     -- `s` is a disjoint union of `t` and `{a}`.

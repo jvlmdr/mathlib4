@@ -507,13 +507,3 @@ def Subtype.impEmbedding (p q : α → Prop) (h : ∀ x, p x → q x) : { x // p
 #align subtype.imp_embedding_apply_coe Subtype.impEmbedding_apply_coe
 
 end Subtype
-
-namespace Prod
-
-def mkLeftEmbedding (b : β) : ι ↪ ι × β := ⟨(·, b), fun _ _ h ↦ mk_inj_right.mp h⟩
-def mkRightEmbedding (a : α) : β ↪ α × β := ⟨(a, ·), fun _ _ h ↦ mk_inj_left.mp h⟩
-
-@[simp] theorem mkLeftEmbedding_apply (b : β) (x : α) : mkLeftEmbedding b x = (x, b) := rfl
-@[simp] theorem mkRightEmbedding_apply (a : α) (x : β) : mkRightEmbedding a x = (a, x) := rfl
-
-end Prod
