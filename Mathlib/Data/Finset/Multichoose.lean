@@ -153,8 +153,6 @@ theorem multichoose_eq_toFinset_powersetCard_nsmul_val {n : ℕ} {s : Finset α}
     rw [imp_false]
     simpa [hxs] using hts
 
-#check Multiset.count_eq_card_filter_eq
-
 -- TODO: Use `Finset.image` proofs to simplify this?
 theorem multichoose_eq_biUnion_multichoose_erase {k : ℕ} {s : Finset α} {x : α} (hx : x ∈ s) :
     s.multichoose k = (range k.succ).biUnion fun m ↦
