@@ -512,35 +512,56 @@ open BigOperators
 variable {ι : Type*}
 variable {𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
 
+variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'} {s : Set E} {x : E}
+
+-- TODO: Some way to avoid copy-paste?
 /-- The Fréchet derivative of a product. -/
-theorem HasFDerivAt.finset_prod {s : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'} {x : E}
-    (hf : ∀ i ∈ s, HasFDerivAt (f i) (f' i) x) :
-    HasFDerivAt (∏ i in s, f i ·) (∑ i in s, (∏ j in s.erase i, f j x) • f' i) x := by
-  induction s using Finset.induction with
-  | empty => simp [hasFDerivAt_const]
-  | @insert i s hi ih =>
+theorem HasStrictFDerivAt.finset_prod (hf : ∀ i ∈ u, HasStrictFDerivAt (f i) (f' i) x) :
+    HasStrictFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, f j x) • f' i) x := by
+  induction u using Finset.induction with
+  | empty => simp [hasStrictFDerivAt_const]
+  | @insert i u hi ih =>
     simp only [Finset.prod_insert hi]
-    have hfi := hf i (s.mem_insert_self i)
-    specialize ih (fun j hj ↦ hf j (by simp [hj]))
+    have hfi := hf i <| u.mem_insert_self i
+    specialize ih fun j hj ↦ hf j <| by simp [hj]
     refine (hfi.mul ih).congr_fderiv ?_
     simp only [Finset.sum_insert hi, Finset.erase_insert hi]
-    rw [add_comm]
-    refine congrArg _ ?_
-    rw [Finset.smul_sum]
+    rw [add_comm, _root_.add_right_inj, Finset.smul_sum]
     refine Finset.sum_congr rfl ?_
     intro k hk
     rw [smul_smul]
     refine congrArg₂ _ ?_ rfl
-    rw [Finset.erase_insert_of_ne]
-    · rw [Finset.prod_insert]
-      simp [hi]
-    · exact fun hik ↦ hi (by rw [hik]; exact hk)
+    rw [Finset.erase_insert_of_ne fun hik ↦ hi <| by simpa [hik]]
+    rw [Finset.prod_insert <| by simp [hi]]
+
+theorem HasFDerivWithinAt.finset_prod (hf : ∀ i ∈ u, HasFDerivWithinAt (f i) (f' i) s x) :
+    HasFDerivWithinAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, f j x) • f' i) s x := by
+  induction u using Finset.induction with
+  | empty => simp [hasFDerivWithinAt_const]
+  | @insert i u hi ih =>
+    simp only [Finset.prod_insert hi]
+    have hfi := hf i <| u.mem_insert_self i
+    specialize ih fun j hj ↦ hf j <| by simp [hj]
+    refine (hfi.mul ih).congr_fderiv ?_
+    simp only [Finset.sum_insert hi, Finset.erase_insert hi]
+    rw [add_comm, _root_.add_right_inj, Finset.smul_sum]
+    refine Finset.sum_congr rfl ?_
+    intro k hk
+    rw [smul_smul]
+    refine congrArg₂ _ ?_ rfl
+    rw [Finset.erase_insert_of_ne fun hik ↦ hi <| by simpa [hik]]
+    rw [Finset.prod_insert <| by simp [hi]]
 
 /-- The Fréchet derivative of a product. -/
-theorem fderiv_finset_prod {s : Finset ι} {f : ι → E → 𝔸'} {x : E}
-    (hf : ∀ i ∈ s, DifferentiableAt 𝕜 (f i) x) :
-    fderiv 𝕜 (∏ i in s, f i ·) x = ∑ i in s, (∏ j in s.erase i, f j x) • fderiv 𝕜 (f i) x :=
-  (HasFDerivAt.finset_prod (fun i hi ↦ (hf i hi).hasFDerivAt)).fderiv
+theorem HasFDerivAt.finset_prod (hf : ∀ i ∈ u, HasFDerivAt (f i) (f' i) x) :
+    HasFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, f j x) • f' i) x := by
+  simp only [← hasFDerivWithinAt_univ] at hf ⊢
+  exact HasFDerivWithinAt.finset_prod hf
+
+/-- The Fréchet derivative of a product. -/
+theorem fderiv_finset_prod (hf : ∀ i ∈ u, DifferentiableAt 𝕜 (f i) x) :
+    fderiv 𝕜 (∏ i in u, f i ·) x = ∑ i in u, (∏ j in u.erase i, f j x) • fderiv 𝕜 (f i) x :=
+  HasFDerivAt.fderiv <| HasFDerivAt.finset_prod fun i hi ↦ (hf i hi).hasFDerivAt
 
 section Univ
 
