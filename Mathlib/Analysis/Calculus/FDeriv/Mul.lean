@@ -503,6 +503,41 @@ theorem fderiv_const_mul (ha : DifferentiableAt 𝕜 a x) (b : 𝔸) :
 
 end Mul
 
+section Prod
+
+open BigOperators
+
+/-! ### Derivative of a finite product of functions -/
+
+variable {ι : Type*}
+variable {𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
+
+/-- The Fréchet derivative of a product. -/
+theorem HasFDerivAt.finset_prod {s : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'} {x : E}
+    (hf : ∀ i ∈ s, HasFDerivAt (f i) (f' i) x) :
+    HasFDerivAt (∏ i in s, f i ·) (∑ i in s, (∏ j in Finset.erase s i, f j x) • f' i) x := by
+  induction s using Finset.induction with
+  | empty => simp [hasFDerivAt_const]
+  | @insert i s hi ih =>
+    simp only [Finset.prod_insert hi]
+    have hfi := hf i (s.mem_insert_self i)
+    specialize ih (fun j hj ↦ hf j (by simp [hj]))
+    refine (hfi.mul ih).congr_fderiv ?_
+    simp only [Finset.sum_insert hi, Finset.erase_insert hi]
+    rw [add_comm]
+    refine congrArg _ ?_
+    rw [Finset.smul_sum]
+    refine Finset.sum_congr rfl ?_
+    intro k hk
+    rw [smul_smul]
+    refine congrArg₂ _ ?_ rfl
+    rw [Finset.erase_insert_of_ne]
+    · rw [Finset.prod_insert]
+      simp [hi]
+    · exact fun hik ↦ hi (by rw [hik]; exact hk)
+
+end Prod
+
 section AlgebraInverse
 
 variable {R : Type*} [NormedRing R] [NormedAlgebra 𝕜 R] [CompleteSpace R]
