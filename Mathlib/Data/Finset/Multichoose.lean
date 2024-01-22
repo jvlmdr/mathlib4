@@ -399,4 +399,150 @@ theorem pow_sum {p : ℕ} {s : Finset ι} {f : ι → α} :
 
 end Finset
 
+-- TODO: Move?
+theorem List.finRange_map_get_cast {n : ℕ} {l : List α} (hn : n = l.length) :
+    (finRange n).map (fun i ↦ l.get (i.cast hn)) = l := by
+  refine Eq.trans ?_ l.finRange_map_get
+  simp only [finRange, map_pmap, hn]
+  refine pmap_congr _ ?_
+  simp
+
+-- theorem Multiset.sum_map_comp {κ : Type*} [DecidableEq κ] (f : κ → α) (g : ι → κ) {s : Multiset ι} :
+--     Multiset.sum (s.map (f ∘ g)) =
+--     Finset.sum (s.toFinset.image g) fun k ↦ Multiset.count k (s.map g) • f k := by
+--   rw [← map_map, Finset.sum_multiset_map_count, toFinset_map]
+
+#check Nat.multichoose_succ_eq
+#check Multiset.multinomial_eq
+
+-- `Multiset.multinomial m = Nat.multinomial (Multiset.toFinset m) fun a ↦ Multiset.count a m`
+
+theorem Nat.multinomial_succ {s : Finset ι} {f : ι → ℕ} {i : ι} (hi : i ∈ s) :
+    multinomial s (f + fun j ↦ if j = i then 1 else 0) * sorry =
+    multinomial s f * sorry := by
+  simp only [multinomial]
+
+  sorry
+
+theorem Nat.multinomial_succ' {s : Finset ι} {f : ι → ℕ} {i : ι} (hi : i ∈ s) :
+    multinomial s (fun j ↦ if j = i then (f j).succ else f j) = sorry := by
+  sorry
+
+theorem Multiset.multinomial_cons_of_mem {x : ι} {s : Multiset ι} (hxs : x ∈ s) :
+    multinomial (x ::ₘ s) =
+    -- (Nat.multinomial (x ::ₘ s).toFinset fun a ↦ count a (x ::ₘ s))
+    -- Nat.choose (count x (x ::ₘ s) + ∑ i in toFinset s, count i (x ::ₘ s)) (count x (x ::ₘ s)) *
+    --   Nat.multinomial (toFinset s) fun a ↦ count a (x ::ₘ s)
+    -- Nat.choose (f a + Finset.sum s fun (i : α) => f i) (f a) * Nat.multinomial s f := by
+    -- Nat.choose (count x s + card s + 1) (count x s + 1) *
+    --   Nat.multinomial (toFinset s) (card s + 1) := by
+    sorry := by
+  simp only [multinomial_eq, toFinset_cons]
+  rw [Nat.multinomial_insert]
+  simp
+
+  sorry
+
+  -- simp only [multinomial_eq, toFinset_cons]
+  -- rw [Nat.multinomial_insert]
+  -- refine congrArg₂ _ ?_ ?_
+
+  -- sorry
+
+  -- rw [multinomial_eq, toFinset_cons]
+  -- rw [Nat.multinomial_insert]
+  -- simp
+
+
+
+theorem Multiset.multinomial_cons {x : ι} {s : Multiset ι} :
+    multinomial (x ::ₘ s) =
+    -- (Nat.multinomial (x ::ₘ s).toFinset fun a ↦ count a (x ::ₘ s))
+    -- Nat.choose (count x (x ::ₘ s) + ∑ i in toFinset s, count i (x ::ₘ s)) (count x (x ::ₘ s)) *
+    --   Nat.multinomial (toFinset s) fun a ↦ count a (x ::ₘ s)
+
+    -- Nat.choose (f a + Finset.sum s fun (i : α) => f i) (f a) * Nat.multinomial s f := by
+    Nat.choose (s.count x + card s) (s.count x) * s.multinomial := by
+  simp only [multinomial_eq, toFinset_cons]
+  rw [Nat.multinomial_insert]
+
+  simp only [multinomial_eq, toFinset_cons]
+  rw [Nat.multinomial_insert]
+  refine congrArg₂ _ ?_ ?_
+
+  sorry
+
+  rw [multinomial_eq, toFinset_cons]
+  rw [Nat.multinomial_insert]
+  simp
+
+
+  -- by_cases hx : x ∈ s
+  -- · simp [hx]
+  --   -- `Nat.multinomial (toFinset s) fun a ↦ count a (x ::ₘ s)`
+  --   sorry
+  -- · simp [hx, Nat.succ_mul]
+
+  --   --- `(Nat.succ (∑ a in toFinset s, count a (x ::ₘ s)) * Nat.multinomial (toFinset s) fun a ↦ count a (x ::ₘ s))`
+  --   -- simp only [mem_toFinset, hx, not_false_eq_true, count_cons_self, count_eq_zero_of_not_mem,
+  --   --   zero_add, Nat.multinomial_insert_one]
+  --   simp only [mem_toFinset, hx, not_false_eq_true, count_cons_self, count_eq_zero_of_not_mem,
+  --     zero_add, Nat.multinomial_insert_one]
+
+  --   rw [← Finset.cons_eq_insert x s.toFinset (by simp [hx])]
+  --   rw [Nat.multinomial_cons]
+  --   simp only [count_cons_self]
+  --   rw [Nat.choose_symm_add]
+  --   rw [← Nat.multichoose_succ_eq]
+  --   sorry
+
+namespace Finset
+
+theorem multichoose_eq_piFinset_image_univ_map {n : ℕ} {s : Finset ι} :
+    multichoose n s = (Fintype.piFinset (fun _ : Fin n ↦ s)).image univ.val.map := by
+  ext t
+  simp only [mem_multichoose_iff, mem_image, Fintype.mem_piFinset]
+  refine Iff.intro ?_ ?_
+  · rw [and_imp]
+    intro hsn hxs
+    simp only [Fin.univ_def, Multiset.coe_map]
+    have hln := (t.length_toList).trans hsn
+    use fun i ↦ t.toList.get (i.cast hln.symm)
+    refine And.intro ?_ ?_
+    · exact fun _ ↦ hxs _ (Multiset.mem_toList.mp (t.toList.get_mem _ _))
+    · simp [List.finRange_map_get_cast hln.symm]
+  · simp only [forall_exists_index, and_imp]
+    intro f hfs hft
+    simp [← hft, hfs]
+
+-- Need bijection between `piFinset` and `multichoose × order`?
+
+theorem count_piFinset_val_map_univ_map {n : ℕ} {s : Finset ι} {t : Multiset ι} :
+    Multiset.count t ((Fintype.piFinset (fun _ : Fin n ↦ s)).val.map univ.val.map) =
+    t.multinomial := by
+  induction t using Multiset.induction generalizing n s with
+  | empty =>
+    simp
+    sorry
+  | @cons x t ih =>
+    simp
+    sorry
+
+theorem pow_sum' {p : ℕ} {s : Finset ι} {f : ι → α} :
+    (∑ i in s, f i) ^ p = ∑ k in s.multichoose p, k.multinomial * (k.map f).prod := by
+  conv => lhs; rw [← card_fin p]
+  rw [← prod_const, prod_univ_sum]
+  simp only [prod_eq_multiset_prod]
+  simp only [← Function.comp_def f, ← Multiset.map_map]
+  rw [sum_eq_multiset_sum]
+  simp only [← Function.comp_apply (f := Multiset.prod) (g := Multiset.map f)]
+  simp only [← Function.comp_def (f := Multiset.prod ∘ Multiset.map f)]
+  rw [← Multiset.map_map]
+  rw [sum_multiset_map_count, Multiset.toFinset_map, val_toFinset]
+  simp only [count_piFinset_val_map_univ_map]
+  rw [multichoose_eq_piFinset_image_univ_map]
+  simp
+
+end Finset
+
 end Sum

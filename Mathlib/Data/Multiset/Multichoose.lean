@@ -336,4 +336,24 @@ theorem multichoose_le_powerset_nsmul {n : ℕ} {s : Multiset α} :
     multichoose n s ≤ powerset (n • s) :=
   le_trans (multichoose_le_powersetCard_nsmul n s) (powersetCard_le_powerset n (n • s))
 
+variable {n : ℕ} {s : Multiset α}
+
+#check Fintype.piFinset (fun _ : Fin n ↦ s.toFinset)
+
+#check pi (range n) (fun _ ↦ s)
+
+theorem multichoose_le_piFinset {n : ℕ} {s : Multiset α} :
+    multichoose n s ≤ (pi (toFinset s) fun _ ↦ Finset.range (n + 1)).val := by
+  rw [le_iff_count]
+  intro t
+  by_cases hn : card t = n
+  · rw [← hn, count_multichoose_card]
+    refine Finset.prod_le_prod (by simp) ?_
+    intro x hx
+    rw [Finset.mem_piFinset] at hx
+    rw [Finset.mem_range]
+    rw [hn]
+    exact Nat.multichoose_le_multichoose (count x t) (hx x (mem_toFinset.mpr hx))
+  · simp [count_multichoose_of_card_ne hn]
+
 end Multiset
