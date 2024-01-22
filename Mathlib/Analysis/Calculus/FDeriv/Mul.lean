@@ -515,7 +515,7 @@ variable {𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
 /-- The Fréchet derivative of a product. -/
 theorem HasFDerivAt.finset_prod {s : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'} {x : E}
     (hf : ∀ i ∈ s, HasFDerivAt (f i) (f' i) x) :
-    HasFDerivAt (∏ i in s, f i ·) (∑ i in s, (∏ j in Finset.erase s i, f j x) • f' i) x := by
+    HasFDerivAt (∏ i in s, f i ·) (∑ i in s, (∏ j in s.erase i, f j x) • f' i) x := by
   induction s using Finset.induction with
   | empty => simp [hasFDerivAt_const]
   | @insert i s hi ih =>
@@ -535,6 +535,29 @@ theorem HasFDerivAt.finset_prod {s : Finset ι} {f : ι → E → 𝔸'} {f' : �
     · rw [Finset.prod_insert]
       simp [hi]
     · exact fun hik ↦ hi (by rw [hik]; exact hk)
+
+/-- The Fréchet derivative of a product. -/
+theorem fderiv_finset_prod {s : Finset ι} {f : ι → E → 𝔸'} {x : E}
+    (hf : ∀ i ∈ s, DifferentiableAt 𝕜 (f i) x) :
+    fderiv 𝕜 (∏ i in s, f i ·) x = ∑ i in s, (∏ j in s.erase i, f j x) • fderiv 𝕜 (f i) x :=
+  (HasFDerivAt.finset_prod (fun i hi ↦ (hf i hi).hasFDerivAt)).fderiv
+
+section Univ
+
+variable [Fintype ι]
+
+/-- The Fréchet derivative of a product. -/
+theorem HasFDerivAt.finset_prod_univ {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'} {x : E}
+    (hf : ∀ i, HasFDerivAt (f i) (f' i) x) :
+    HasFDerivAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) x :=
+  finset_prod (fun i _ ↦ hf i)
+
+/-- The Fréchet derivative of a product. -/
+theorem fderiv_finset_prod_univ {f : ι → E → 𝔸'} {x : E} (hf : ∀ i, DifferentiableAt 𝕜 (f i) x) :
+    fderiv 𝕜 (∏ i, f i ·) x = ∑ i, (∏ j in Finset.univ.erase i, f j x) • fderiv 𝕜 (f i) x :=
+  fderiv_finset_prod (fun i _ ↦ hf i)
+
+end Univ
 
 end Prod
 
