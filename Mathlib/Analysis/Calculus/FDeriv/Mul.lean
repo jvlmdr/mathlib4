@@ -509,76 +509,143 @@ open BigOperators
 
 /-! ### Derivative of a finite product of functions -/
 
-variable {ι : Type*}
-variable {𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
+variable {ι 𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
 
-variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'} {s : Set E} {x : E}
+-- First define product of finite vector of elements in `hasFDerivAt_finset_prod_univ`.
+-- Then define product of functions using composition.
+-- This avoids repeating the proof for assumptions of `HasStrictFDeriv` and `HasFDerivWithinAt`.
+-- It also provides the derivative for `ContinuousMultilinearMap.mkPiAlgebra`.
 
--- TODO: Some way to avoid copy-paste?
-/-- The Fréchet derivative of a product. -/
-theorem HasStrictFDerivAt.finset_prod (hf : ∀ i ∈ u, HasStrictFDerivAt (f i) (f' i) x) :
-    HasStrictFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, f j x) • f' i) x := by
+section Fintype
+
+-- Note: If we don't assume `DecidableEq ι`, then we can get type conflicts between
+-- `fun a b ↦ Subtype.instDecidableEqSubtype a b` and `fun a b ↦ Classical.propDecidable (a = b)`.
+variable [Fintype ι] [DecidableEq ι]
+variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
+
+-- Requires `Fintype` here for `ι → 𝔸'` to have a norm.
+theorem hasStrictFDerivAt_finset_prod_univ {x : ι → 𝔸'} :
+    HasStrictFDerivAt (𝕜 := 𝕜) (∏ i, · i) (∑ i, (∏ j in Finset.univ.erase i, x j) • proj i) x := by
+  generalize (Finset.univ : Finset ι) = u
   induction u using Finset.induction with
   | empty => simp [hasStrictFDerivAt_const]
   | @insert i u hi ih =>
     simp only [Finset.prod_insert hi]
-    have hfi := hf i <| u.mem_insert_self i
-    specialize ih fun j hj ↦ hf j <| by simp [hj]
-    refine (hfi.mul ih).congr_fderiv ?_
+    conv => arg 1; intro x; rw [← ContinuousLinearMap.proj_apply (R := 𝕜) i x]
+    refine ((proj i).hasStrictFDerivAt.mul' ih).congr_fderiv ?_
     simp only [Finset.sum_insert hi, Finset.erase_insert hi]
-    rw [add_comm, _root_.add_right_inj, Finset.smul_sum]
-    refine Finset.sum_congr rfl ?_
-    intro k hk
-    rw [smul_smul]
-    refine congrArg₂ _ ?_ rfl
-    rw [Finset.erase_insert_of_ne fun hik ↦ hi <| by simpa [hik]]
-    rw [Finset.prod_insert <| by simp [hi]]
+    rw [add_comm]
+    refine congrArg₂ _ ?_ ?_
+    · ext m
+      rw [smulRight_apply, ContinuousLinearMap.smul_apply]
+      simp [mul_comm]
+    · ext m
+      -- TODO: Why doesn't `simp only` work here?
+      -- simp only [ContinuousLinearMap.smul_apply]
+      rw [ContinuousLinearMap.smul_apply, ContinuousLinearMap.sum_apply, Finset.smul_sum]
+      rw [ContinuousLinearMap.sum_apply]
+      refine Finset.sum_congr rfl ?_
+      intro k hk
+      simp only [ContinuousLinearMap.smul_apply, proj_apply]
+      rw [smul_smul]
+      refine congrArg₂ _ ?_ rfl
+      rw [Finset.erase_insert_of_ne fun hik ↦ hi <| by simpa [hik]]
+      rw [Finset.prod_insert <| by simp [hi]]
 
-theorem HasFDerivWithinAt.finset_prod (hf : ∀ i ∈ u, HasFDerivWithinAt (f i) (f' i) s x) :
-    HasFDerivWithinAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, f j x) • f' i) s x := by
-  induction u using Finset.induction with
-  | empty => simp [hasFDerivWithinAt_const]
-  | @insert i u hi ih =>
-    simp only [Finset.prod_insert hi]
-    have hfi := hf i <| u.mem_insert_self i
-    specialize ih fun j hj ↦ hf j <| by simp [hj]
-    refine (hfi.mul ih).congr_fderiv ?_
-    simp only [Finset.sum_insert hi, Finset.erase_insert hi]
-    rw [add_comm, _root_.add_right_inj, Finset.smul_sum]
-    refine Finset.sum_congr rfl ?_
-    intro k hk
-    rw [smul_smul]
-    refine congrArg₂ _ ?_ rfl
-    rw [Finset.erase_insert_of_ne fun hik ↦ hi <| by simpa [hik]]
-    rw [Finset.prod_insert <| by simp [hi]]
+theorem hasFDerivAt_finset_prod_univ {x : ι → 𝔸'} :
+    HasFDerivAt (𝕜 := 𝕜) (∏ i, · i) (∑ i, (∏ j in Finset.univ.erase i, x j) • proj i) x :=
+  hasStrictFDerivAt_finset_prod_univ.hasFDerivAt
 
-/-- The Fréchet derivative of a product. -/
-theorem HasFDerivAt.finset_prod (hf : ∀ i ∈ u, HasFDerivAt (f i) (f' i) x) :
-    HasFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, f j x) • f' i) x := by
-  simp only [← hasFDerivWithinAt_univ] at hf ⊢
-  exact HasFDerivWithinAt.finset_prod hf
+theorem ContinuousMultilinearMap.hasStrictFDerivAt_mkPiAlgebra {x : ι → 𝔸'} :
+    HasStrictFDerivAt (𝕜 := 𝕜) (ContinuousMultilinearMap.mkPiAlgebra 𝕜 ι 𝔸')
+      (∑ i, (∏ j in Finset.univ.erase i, x j) • proj i) x :=
+  hasStrictFDerivAt_finset_prod_univ
 
-/-- The Fréchet derivative of a product. -/
-theorem fderiv_finset_prod (hf : ∀ i ∈ u, DifferentiableAt 𝕜 (f i) x) :
-    fderiv 𝕜 (∏ i in u, f i ·) x = ∑ i in u, (∏ j in u.erase i, f j x) • fderiv 𝕜 (f i) x :=
-  HasFDerivAt.fderiv <| HasFDerivAt.finset_prod fun i hi ↦ (hf i hi).hasFDerivAt
+theorem ContinuousMultilinearMap.hasFDerivAt_mkPiAlgebra {x : ι → 𝔸'} :
+    HasFDerivAt (𝕜 := 𝕜) (ContinuousMultilinearMap.mkPiAlgebra 𝕜 ι 𝔸')
+      (∑ i, (∏ j in Finset.univ.erase i, x j) • proj i) x :=
+  hasStrictFDerivAt_mkPiAlgebra.hasFDerivAt
 
-section Univ
+theorem HasFDerivAt.finset_prod_univ {x : E} (hf : ∀ i, HasFDerivAt (f i) (f' i) x) :
+    HasFDerivAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) x := by
+  refine (hasFDerivAt_finset_prod_univ.comp x <| hasFDerivAt_pi.mpr hf).congr_fderiv ?_
+  ext m
+  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.sum_apply, ContinuousLinearMap.sum_apply]
+  rfl
 
-variable [Fintype ι]
+theorem HasStrictFDerivAt.finset_prod_univ {x : E} (hf : ∀ i, HasStrictFDerivAt (f i) (f' i) x) :
+    HasStrictFDerivAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) x := by
+  refine (hasStrictFDerivAt_finset_prod_univ.comp x <| hasStrictFDerivAt_pi.mpr hf).congr_fderiv ?_
+  ext m
+  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.sum_apply, ContinuousLinearMap.sum_apply]
+  rfl
 
-/-- The Fréchet derivative of a product. -/
-theorem HasFDerivAt.finset_prod_univ {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'} {x : E}
-    (hf : ∀ i, HasFDerivAt (f i) (f' i) x) :
-    HasFDerivAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) x :=
-  finset_prod (fun i _ ↦ hf i)
+theorem HasFDerivWithinAt.finset_prod_univ {x : E} (hf : ∀ i, HasFDerivWithinAt (f i) (f' i) s x) :
+    HasFDerivWithinAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) s x := by
+  refine HasFDerivWithinAt.congr_fderiv
+    (hasFDerivAt_finset_prod_univ.comp_hasFDerivWithinAt x <| hasFDerivWithinAt_pi.mpr hf) ?_
+  ext m
+  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.sum_apply, ContinuousLinearMap.sum_apply]
+  rfl
 
-/-- The Fréchet derivative of a product. -/
-theorem fderiv_finset_prod_univ {f : ι → E → 𝔸'} {x : E} (hf : ∀ i, DifferentiableAt 𝕜 (f i) x) :
-    fderiv 𝕜 (∏ i, f i ·) x = ∑ i, (∏ j in Finset.univ.erase i, f j x) • fderiv 𝕜 (f i) x :=
-  fderiv_finset_prod (fun i _ ↦ hf i)
+end Fintype
 
-end Univ
+section Comp
+
+variable [DecidableEq ι]
+variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
+
+-- TODO: Use `Function.update` instead of `Finset.erase` to simplify proofs? Or sdiff?
+
+-- TODO: Move?
+theorem Finset.prod_erase_eq_update_one_of_mem (f : ι → 𝔸') {i : ι} (hi : i ∈ u) :
+    ∏ j in u.erase i, f j = ∏ j in u, Function.update (fun k ↦ f k) i 1 j := by
+  simp [prod_update_of_mem hi, erase_eq]
+
+-- TODO: Move?
+theorem Finset.prod_erase_attach (f : ι → 𝔸') (i : u) :
+    ∏ j in u.attach.erase i, f (↑j) = ∏ j in u.erase ↑i, f j := by
+  rw [prod_erase_eq_update_one_of_mem f i.prop]
+  rw [prod_erase_eq_update_one_of_mem _ (mem_attach u i)]
+  rw [← prod_coe_sort u]
+  refine prod_congr rfl ?_
+  intro j _
+  simp only [← Function.comp_apply (g := Subtype.val) (x := j)]
+  rw [Function.update_comp_eq_of_injective _ Subtype.val_injective]
+  simp only [Function.comp_def]
+
+theorem HasFDerivAt.finset_prod {x : E} (hf : ∀ i ∈ u, HasFDerivAt (f i) (f' i) x) :
+    HasFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, (f j x)) • f' i) x := by
+  simp only [← Finset.prod_coe_sort u]
+  refine (finset_prod_univ fun i : u ↦ hf i i.prop).congr_fderiv ?_
+  rw [← Finset.sum_attach u, Finset.univ_eq_attach]
+  exact Finset.sum_congr rfl fun i _ ↦ congrArg₂ _ (Finset.prod_erase_attach (f · x) i) rfl
+
+theorem HasFDerivWithinAt.finset_prod {x : E} (hf : ∀ i ∈ u, HasFDerivWithinAt (f i) (f' i) s x) :
+    HasFDerivWithinAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, (f j x)) • f' i) s x := by
+  simp only [← Finset.prod_coe_sort u]
+  refine (finset_prod_univ fun i : u ↦ hf i i.prop).congr_fderiv ?_
+  rw [← Finset.sum_attach u, Finset.univ_eq_attach]
+  exact Finset.sum_congr rfl fun i _ ↦ congrArg₂ _ (Finset.prod_erase_attach (f · x) i) rfl
+
+theorem HasStrictFDerivAt.finset_prod {x : E} (hf : ∀ i ∈ u, HasStrictFDerivAt (f i) (f' i) x) :
+    HasStrictFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, (f j x)) • f' i) x := by
+  simp only [← Finset.prod_coe_sort u]
+  refine (finset_prod_univ fun i : u ↦ hf i i.prop).congr_fderiv ?_
+  rw [← Finset.sum_attach u, Finset.univ_eq_attach]
+  exact Finset.sum_congr rfl fun i _ ↦ congrArg₂ _ (Finset.prod_erase_attach (f · x) i) rfl
+
+theorem fderiv_finset_prod {x : E} (hf : ∀ i ∈ u, DifferentiableAt 𝕜 (f i) x) :
+    fderiv 𝕜 (∏ i in u, f i ·) x = ∑ i in u, (∏ j in u.erase i, (f j x)) • fderiv 𝕜 (f i) x :=
+  (HasFDerivAt.finset_prod (fun i hi ↦ (hf i hi).hasFDerivAt)).fderiv
+
+theorem fderivWithin_finset_prod {x : E} (hxs : UniqueDiffWithinAt 𝕜 s x)
+    (hf : ∀ i ∈ u, DifferentiableWithinAt 𝕜 (f i) s x) :
+    fderivWithin 𝕜 (∏ i in u, f i ·) s x =
+    ∑ i in u, (∏ j in u.erase i, (f j x)) • fderivWithin 𝕜 (f i) s x :=
+  (HasFDerivWithinAt.finset_prod (fun i hi ↦ (hf i hi).hasFDerivWithinAt)).fderivWithin hxs
+
+end Comp
 
 end Prod
 
