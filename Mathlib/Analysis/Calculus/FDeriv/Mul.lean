@@ -586,25 +586,6 @@ section Comp
 
 variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
 
--- TODO: Use `Function.update` instead of `Finset.erase` to simplify proofs? Or sdiff?
-
--- TODO: Move?
-theorem Finset.prod_erase_eq_update_one_of_mem (f : ι → 𝔸') {i : ι} (hi : i ∈ u) :
-    ∏ j in u.erase i, f j = ∏ j in u, Function.update (fun k ↦ f k) i 1 j := by
-  simp [prod_update_of_mem hi, erase_eq]
-
--- TODO: Move?
-theorem Finset.prod_erase_attach (f : ι → 𝔸') (i : u) :
-    ∏ j in u.attach.erase i, f (↑j) = ∏ j in u.erase ↑i, f j := by
-  rw [prod_erase_eq_update_one_of_mem f i.prop]
-  rw [prod_erase_eq_update_one_of_mem _ (mem_attach u i)]
-  rw [← prod_coe_sort u]
-  refine prod_congr rfl ?_
-  intro j _
-  simp only [← Function.comp_apply (g := Subtype.val) (x := j)]
-  rw [Function.update_comp_eq_of_injective _ Subtype.val_injective]
-  simp only [Function.comp_def]
-
 theorem HasFDerivAt.finset_prod {x : E} (hf : ∀ i ∈ u, HasFDerivAt (f i) (f' i) x) :
     HasFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, (f j x)) • f' i) x := by
   simp only [← Finset.prod_coe_sort u]
