@@ -509,7 +509,9 @@ open BigOperators
 
 /-! ### Derivative of a finite product of functions -/
 
-variable {ι 𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
+-- Note: If we don't assume `DecidableEq ι`, then we can get type conflicts between
+-- `fun a b ↦ Subtype.instDecidableEqSubtype a b` and `fun a b ↦ Classical.propDecidable (a = b)`.
+variable {ι : Type*} [DecidableEq ι] {𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
 
 -- First define product of finite vector of elements in `hasFDerivAt_finset_prod_univ`.
 -- Then define product of functions using composition.
@@ -518,10 +520,7 @@ variable {ι 𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
 
 section Fintype
 
--- Note: If we don't assume `DecidableEq ι`, then we can get type conflicts between
--- `fun a b ↦ Subtype.instDecidableEqSubtype a b` and `fun a b ↦ Classical.propDecidable (a = b)`.
-variable [Fintype ι] [DecidableEq ι]
-variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
+variable [Fintype ι] {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
 
 -- Requires `Fintype` here for `ι → 𝔸'` to have a norm.
 theorem hasStrictFDerivAt_finset_prod_univ {x : ι → 𝔸'} :
@@ -531,24 +530,17 @@ theorem hasStrictFDerivAt_finset_prod_univ {x : ι → 𝔸'} :
   | empty => simp [hasStrictFDerivAt_const]
   | @insert i u hi ih =>
     simp only [Finset.prod_insert hi]
-    conv => arg 1; intro x; rw [← ContinuousLinearMap.proj_apply (R := 𝕜) i x]
     refine ((proj i).hasStrictFDerivAt.mul' ih).congr_fderiv ?_
     simp only [Finset.sum_insert hi, Finset.erase_insert hi]
     rw [add_comm]
     refine congrArg₂ _ ?_ ?_
     · ext m
-      rw [smulRight_apply, ContinuousLinearMap.smul_apply]
-      simp [mul_comm]
+      simp only [smulRight_apply (R := 𝕜), smul_apply, smul_eq_mul]
+      exact mul_comm _ _
     · ext m
-      -- TODO: Why doesn't `simp only` work here?
-      -- simp only [ContinuousLinearMap.smul_apply]
-      rw [ContinuousLinearMap.smul_apply, ContinuousLinearMap.sum_apply, Finset.smul_sum]
-      rw [ContinuousLinearMap.sum_apply]
+      simp only [smul_apply (R₁ := 𝕜), sum_apply (R₁ := 𝕜), Finset.smul_sum, smul_smul, proj_apply]
       refine Finset.sum_congr rfl ?_
       intro k hk
-      simp only [ContinuousLinearMap.smul_apply, proj_apply]
-      rw [smul_smul]
-      refine congrArg₂ _ ?_ rfl
       rw [Finset.erase_insert_of_ne fun hik ↦ hi <| by simpa [hik]]
       rw [Finset.prod_insert <| by simp [hi]]
 
@@ -592,7 +584,6 @@ end Fintype
 
 section Comp
 
-variable [DecidableEq ι]
 variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
 
 -- TODO: Use `Function.update` instead of `Finset.erase` to simplify proofs? Or sdiff?
@@ -642,7 +633,7 @@ theorem fderiv_finset_prod {x : E} (hf : ∀ i ∈ u, DifferentiableAt 𝕜 (f i
 theorem fderivWithin_finset_prod {x : E} (hxs : UniqueDiffWithinAt 𝕜 s x)
     (hf : ∀ i ∈ u, DifferentiableWithinAt 𝕜 (f i) s x) :
     fderivWithin 𝕜 (∏ i in u, f i ·) s x =
-    ∑ i in u, (∏ j in u.erase i, (f j x)) • fderivWithin 𝕜 (f i) s x :=
+      ∑ i in u, (∏ j in u.erase i, (f j x)) • fderivWithin 𝕜 (f i) s x :=
   (HasFDerivWithinAt.finset_prod (fun i hi ↦ (hf i hi).hasFDerivWithinAt)).fderivWithin hxs
 
 end Comp
