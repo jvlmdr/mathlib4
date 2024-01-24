@@ -317,11 +317,6 @@ theorem norm_iteratedFDeriv_mul_le {f : E → A} {g : E → A} {N : ℕ∞} (hf 
     hf.contDiffOn hg.contDiffOn uniqueDiffOn_univ (mem_univ x) hn
 #align norm_iterated_fderiv_mul_le norm_iteratedFDeriv_mul_le
 
--- TODO: Move.
-@[simp]
-theorem Sym.card_coe {α : Type*} {n : ℕ} (s : Sym α n) : Multiset.card (s : Multiset α) = n :=
-  s.prop
-
 theorem norm_iteratedFDeriv_prod_le [NormOneClass A'] {ι : Type*} [DecidableEq ι] {u : Finset ι}
     {f : ι → E → A'} {N : ℕ∞} (hf : ∀ i ∈ u, ContDiff 𝕜 N (f i)) (x : E)
     {n : ℕ} (hn : (n : ℕ∞) ≤ N) :

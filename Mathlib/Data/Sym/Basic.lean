@@ -156,6 +156,9 @@ theorem ofVector_cons (a : α) (v : Vector α n) : ↑(Vector.cons a v) = a ::�
   rfl
 #align sym.of_vector_cons Sym.ofVector_cons
 
+@[simp]
+theorem card_coe : Multiset.card (s : Multiset α) = n := s.prop
+
 /-- `α ∈ s` means that `a` appears as one of the factors in `s`.
 -/
 instance : Membership α (Sym α n) :=
