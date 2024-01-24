@@ -214,6 +214,9 @@ theorem multinomial_filter_ne [DecidableEq α] (a : α) (m : Multiset α) :
     · rw [not_ne_iff.1 h, Function.update_same]
 #align multiset.multinomial_filter_ne Multiset.multinomial_filter_ne
 
+@[simp]
+theorem multinomial_zero [DecidableEq α] : multinomial (0 : Multiset α) = 1 := rfl
+
 end Multiset
 
 namespace Finset

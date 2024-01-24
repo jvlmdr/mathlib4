@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel, Floris van Doorn
 -/
 import Mathlib.Analysis.Calculus.ContDiff.Basic
+import Mathlib.Data.Finset.Sym
 import Mathlib.Data.Nat.Choose.Cast
+import Mathlib.Data.Nat.Choose.Multinomial
 
 #align_import analysis.calculus.cont_diff from "leanprover-community/mathlib"@"3bce8d800a6f2b8f63fe1e588fd76a9ff4adcebe"
 
@@ -294,6 +296,7 @@ end
 section
 
 variable {A : Type*} [NormedRing A] [NormedAlgebra 𝕜 A]
+variable {A' : Type*} [NormedCommRing A'] [NormedAlgebra 𝕜 A']
 
 theorem norm_iteratedFDerivWithin_mul_le {f : E → A} {g : E → A} {N : ℕ∞} (hf : ContDiffOn 𝕜 N f s)
     (hg : ContDiffOn 𝕜 N g s) (hs : UniqueDiffOn 𝕜 s) {x : E} (hx : x ∈ s) {n : ℕ}
@@ -313,6 +316,86 @@ theorem norm_iteratedFDeriv_mul_le {f : E → A} {g : E → A} {N : ℕ∞} (hf 
   exact norm_iteratedFDerivWithin_mul_le
     hf.contDiffOn hg.contDiffOn uniqueDiffOn_univ (mem_univ x) hn
 #align norm_iterated_fderiv_mul_le norm_iteratedFDeriv_mul_le
+
+-- TODO: Move.
+@[simp]
+theorem Sym.card_coe {α : Type*} {n : ℕ} (s : Sym α n) : Multiset.card (s : Multiset α) = n :=
+  s.prop
+
+theorem norm_iteratedFDeriv_prod_le [NormOneClass A'] {ι : Type*} [DecidableEq ι] {u : Finset ι}
+    {f : ι → E → A'} {N : ℕ∞} (hf : ∀ i ∈ u, ContDiff 𝕜 N (f i)) (x : E)
+    {n : ℕ} (hn : (n : ℕ∞) ≤ N) :
+    ‖iteratedFDeriv 𝕜 n (∏ j in u, f j ·) x‖ ≤
+      ∑ p in u.sym n, (p : Multiset ι).multinomial *
+        ∏ j in u, ‖iteratedFDeriv 𝕜 ((p : Multiset ι).count j) (f j) x‖ := by
+  induction u using Finset.induction generalizing n with
+  | empty =>
+    cases n with
+    | zero => simp [Sym.eq_nil_of_card_zero]
+    | succ n => simp [iteratedFDeriv_succ_const]
+  | @insert i u hi IH =>
+    conv => lhs; simp only [Finset.prod_insert hi]
+    simp only [Finset.mem_insert, forall_eq_or_imp] at hf
+    specialize @IH hf.2
+    refine le_trans
+      (norm_iteratedFDeriv_mul_le hf.1 (contDiff_prod hf.2) _ hn) ?_
+    rw [← Finset.sum_coe_sort (Finset.sym _ _)]
+    rw [Finset.sum_equiv (Finset.symInsertEquiv hi) (t := Finset.univ)
+      (g := fun (p : (k : Fin n.succ) × u.sym (n - k)) ↦
+        ((Finset.symInsertEquiv hi).symm p : Multiset ι).multinomial * ∏ j in insert i u,
+          ‖iteratedFDeriv 𝕜 (((Finset.symInsertEquiv hi).symm p : Multiset ι).count j) (f j) x‖)
+      (by simp)
+      (by
+        simp only [Equiv.symm_apply_apply]
+        intro p _
+        -- TODO: Why doesn't `simp only` reach inside the product?
+        -- have := Equiv.symm_apply_apply (Finset.symInsertEquiv hi) p
+        -- simp only [Equiv.symm_apply_apply (Finset.symInsertEquiv hi) p]
+        refine congrArg _ ?_
+        refine congrArg _ ?_
+        funext j
+        rw [Equiv.symm_apply_apply])]
+    rw [← Finset.univ_sigma_univ, Finset.sum_sigma, Finset.sum_range]
+    refine Finset.sum_le_sum ?_
+    simp only [Finset.mem_univ, forall_true_left]
+    intro m
+    simp only [Finset.symInsertEquiv_symm_apply_coe]
+    specialize @IH (n - m) (le_trans (WithTop.coe_le_coe.mpr (n.sub_le m)) hn)
+    refine le_trans (mul_le_mul_of_nonneg_left IH (by simp [mul_nonneg])) ?_
+    rw [Finset.mul_sum, ← Finset.sum_coe_sort]
+    refine Finset.sum_le_sum ?_
+    simp only [Finset.mem_univ, forall_true_left, Subtype.forall]
+    intro p hp
+    refine le_of_eq ?_
+    rw [Finset.prod_insert hi]
+    have hip : i ∉ p := fun h ↦ hi <| (Finset.mem_sym_iff.mp hp) i h
+    have h_count : Multiset.count i (Sym.fill i m p : Multiset ι) = m := by
+      simp only [Sym.coe_fill, Sym.coe_replicate]
+      simp only [Multiset.count_add, Multiset.count_replicate_self]
+      rw [Multiset.count_eq_zero_of_not_mem (by simpa [Sym.mem_coe] using hip)]
+      simp
+    have h_multinomial : (Sym.fill i m p : Multiset ι).multinomial =
+        n.choose m * (p : Multiset ι).multinomial := by
+      rw [Multiset.multinomial_filter_ne i]
+      simp only [Sym.card_coe, h_count]
+      simp only [Sym.coe_fill, Sym.coe_replicate, Multiset.filter_add]
+      rw [Multiset.filter_eq_self.mpr]
+      · rw [Multiset.filter_eq_nil.mpr]
+        · simp
+        · exact fun j hj ↦ Decidable.not_not.mpr (Multiset.eq_of_mem_replicate hj).symm
+      · exact fun j hj h ↦ hip <| by simpa [h] using hj
+    rw [h_count, h_multinomial, Nat.cast_mul]
+    ring_nf  -- TODO: Was it just lucky that this worked?
+    refine congrArg _ (Finset.prod_congr rfl ?_)
+    intro j hj
+    have hji : j ≠ i := fun h ↦ hi <| by simpa [h] using hj
+    simp only [Sym.coe_fill]
+    -- simp only [Multiset.count_add]  -- Example of simp not working.
+    rw [Multiset.count_add]
+    simp only [Sym.coe_replicate]
+    rw [Multiset.count_eq_zero_of_not_mem (s := Multiset.replicate m i)]
+    · simp
+    · simp [Multiset.mem_replicate, hji]
 
 end
 
