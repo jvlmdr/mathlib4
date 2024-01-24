@@ -509,9 +509,8 @@ open BigOperators
 
 /-! ### Derivative of a finite product of functions -/
 
--- Note: If we don't assume `DecidableEq ι`, then we can get type conflicts between
--- `fun a b ↦ Subtype.instDecidableEqSubtype a b` and `fun a b ↦ Classical.propDecidable (a = b)`.
 variable {ι : Type*} [DecidableEq ι] {𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
+  {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
 
 -- First define product of finite vector of elements in `hasFDerivAt_finset_prod_univ`.
 -- Then define product of functions using composition.
@@ -520,7 +519,9 @@ variable {ι : Type*} [DecidableEq ι] {𝔸' : Type*} [NormedCommRing 𝔸'] [N
 
 section Fintype
 
-variable [Fintype ι] {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
+-- Note: If we don't also assume `DecidableEq ι`, then we can get type conflicts between
+-- `fun a b ↦ Subtype.instDecidableEqSubtype a b` and `fun a b ↦ Classical.propDecidable (a = b)`.
+variable [Fintype ι]
 
 -- Requires `Fintype` here for `ι → 𝔸'` to have a norm.
 theorem hasStrictFDerivAt_finset_prod_univ {x : ι → 𝔸'} :
@@ -583,8 +584,6 @@ theorem HasFDerivWithinAt.finset_prod_univ {x : E} (hf : ∀ i, HasFDerivWithinA
 end Fintype
 
 section Comp
-
-variable {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
 
 theorem HasFDerivAt.finset_prod {x : E} (hf : ∀ i ∈ u, HasFDerivAt (f i) (f' i) x) :
     HasFDerivAt (∏ i in u, f i ·) (∑ i in u, (∏ j in u.erase i, (f j x)) • f' i) x := by
