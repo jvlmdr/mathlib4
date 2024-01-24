@@ -1434,10 +1434,12 @@ theorem iteratedFDerivWithin_sum_apply {ι : Type*} {f : ι → E → F} {u : Fi
     simp only [Finset.sum_insert ha]
     rw [iteratedFDerivWithin_add_apply' h.1 (ContDiffOn.sum h.2) hs hx, ih h.2]
 
-theorem iteratedFDeriv_sum_apply {ι : Type*} {f : ι → E → F} {u : Finset ι} {i : ℕ} {x : E}
+theorem iteratedFDeriv_sum {ι : Type*} {f : ι → E → F} {u : Finset ι} {i : ℕ} {x : E}
     (h : ∀ j ∈ u, ContDiff 𝕜 i (f j)) :
-    iteratedFDeriv 𝕜 i (∑ j in u, f j ·) x = ∑ j in u, iteratedFDeriv 𝕜 i (f j) x := by
+    iteratedFDeriv 𝕜 i (∑ j in u, f j ·) = ∑ j in u, iteratedFDeriv 𝕜 i (f j) := by
   simp only [← iteratedFDerivWithin_univ]
+  funext x
+  rw [Finset.sum_apply]
   exact iteratedFDerivWithin_sum_apply uniqueDiffOn_univ trivial fun j hj ↦ (h j hj).contDiffOn
 
 /-! ### Product of two functions -/
