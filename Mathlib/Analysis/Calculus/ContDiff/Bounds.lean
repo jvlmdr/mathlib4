@@ -336,31 +336,19 @@ theorem norm_iteratedFDeriv_prod_le [NormOneClass A'] {ι : Type*} [DecidableEq 
   | @insert i u hi IH =>
     conv => lhs; simp only [Finset.prod_insert hi]
     simp only [Finset.mem_insert, forall_eq_or_imp] at hf
-    specialize @IH hf.2
-    refine le_trans
-      (norm_iteratedFDeriv_mul_le hf.1 (contDiff_prod hf.2) _ hn) ?_
+    refine le_trans (norm_iteratedFDeriv_mul_le hf.1 (contDiff_prod hf.2) _ hn) ?_
     rw [← Finset.sum_coe_sort (Finset.sym _ _)]
     rw [Finset.sum_equiv (Finset.symInsertEquiv hi) (t := Finset.univ)
-      (g := fun (p : (k : Fin n.succ) × u.sym (n - k)) ↦
-        ((Finset.symInsertEquiv hi).symm p : Multiset ι).multinomial * ∏ j in insert i u,
-          ‖iteratedFDeriv 𝕜 (((Finset.symInsertEquiv hi).symm p : Multiset ι).count j) (f j) x‖)
-      (by simp)
-      (by
-        simp only [Equiv.symm_apply_apply]
-        intro p _
-        -- TODO: Why doesn't `simp only` reach inside the product?
-        -- have := Equiv.symm_apply_apply (Finset.symInsertEquiv hi) p
-        -- simp only [Equiv.symm_apply_apply (Finset.symInsertEquiv hi) p]
-        refine congrArg _ ?_
-        refine congrArg _ ?_
-        funext j
-        rw [Equiv.symm_apply_apply])]
+      (g := (fun v ↦ v.multinomial * ∏ j in insert i u, ‖iteratedFDeriv 𝕜 (v.count j) (f j) x‖) ∘
+        Sym.toMultiset ∘ Subtype.val ∘ (Finset.symInsertEquiv hi).symm)
+      (by simp) (by simp only [← comp_apply (g := Finset.symInsertEquiv hi), comp.assoc]; simp)]
     rw [← Finset.univ_sigma_univ, Finset.sum_sigma, Finset.sum_range]
+    simp only [comp_apply, Finset.symInsertEquiv_symm_apply_coe]
     refine Finset.sum_le_sum ?_
     simp only [Finset.mem_univ, forall_true_left]
     intro m
-    simp only [Finset.symInsertEquiv_symm_apply_coe]
-    specialize @IH (n - m) (le_trans (WithTop.coe_le_coe.mpr (n.sub_le m)) hn)
+    -- Apply inductive hypothesis for product over `u` with `n := n - m`.
+    specialize IH hf.2 (le_trans (WithTop.coe_le_coe.mpr (n.sub_le m)) hn)
     refine le_trans (mul_le_mul_of_nonneg_left IH (by simp [mul_nonneg])) ?_
     rw [Finset.mul_sum, ← Finset.sum_coe_sort]
     refine Finset.sum_le_sum ?_
