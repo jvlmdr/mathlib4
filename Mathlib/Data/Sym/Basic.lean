@@ -606,6 +606,13 @@ theorem count_coe_fill_self_of_not_mem [DecidableEq α] {a : α} {i : Fin (n + 1
     count a (fill a i s : Multiset α) = i := by
   simp [coe_fill, coe_replicate, hx]
 
+theorem count_coe_fill_of_ne [DecidableEq α] {a x : α} {i : Fin (n + 1)} {s : Sym α (n - i)}
+    (hx : x ≠ a) :
+    count x (fill a i s : Multiset α) = count x s := by
+  suffices : x ∉ Multiset.replicate i a
+  · simp [coe_fill, coe_replicate, this]
+  simp [Multiset.mem_replicate, hx]
+
 end Sym
 
 section Equiv

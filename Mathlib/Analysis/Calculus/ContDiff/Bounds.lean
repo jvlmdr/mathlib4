@@ -359,10 +359,7 @@ theorem norm_iteratedFDeriv_prod_le [NormOneClass A'] {ι : Type*} [DecidableEq 
     refine Finset.prod_congr rfl ?_
     intro j hj
     have hji : j ≠ i := fun h ↦ hi <| by simpa [h] using hj
-    rw [Sym.coe_fill, Multiset.count_add, Sym.coe_replicate]
-    rw [Multiset.count_eq_zero_of_not_mem
-      (by simp [Multiset.mem_replicate, hji] : j ∉ Multiset.replicate m i)]
-    simp
+    rw [Sym.count_coe_fill_of_ne hji]
 
 end
 
