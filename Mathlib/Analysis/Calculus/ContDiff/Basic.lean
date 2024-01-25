@@ -61,8 +61,6 @@ variable {𝕜 : Type*} [NontriviallyNormedField 𝕜] {D : Type uD} [NormedAddC
 
 /-! ### Constants -/
 
--- porting note: TODO: prove `HasFTaylorSeriesUpToOn` theorems for zero and a constant
-
 @[simp]
 theorem iteratedFDeriv_zero_fun {n : ℕ} : (iteratedFDeriv 𝕜 n fun _ : E => (0 : F)) = 0 := by
   induction' n with n IH
@@ -1429,10 +1427,10 @@ theorem iteratedFDerivWithin_sum_apply {ι : Type*} {f : ι → E → F} {u : Fi
       ∑ j in u, iteratedFDerivWithin 𝕜 i (f j) s x := by
   induction u using Finset.induction with
   | empty => ext; simp [hs, hx]
-  | @insert a u ha ih =>
+  | @insert a u ha IH =>
     simp only [Finset.mem_insert, forall_eq_or_imp] at h
     simp only [Finset.sum_insert ha]
-    rw [iteratedFDerivWithin_add_apply' h.1 (ContDiffOn.sum h.2) hs hx, ih h.2]
+    rw [iteratedFDerivWithin_add_apply' h.1 (ContDiffOn.sum h.2) hs hx, IH h.2]
 
 theorem iteratedFDeriv_sum {ι : Type*} {f : ι → E → F} {u : Finset ι} {i : ℕ}
     (h : ∀ j ∈ u, ContDiff 𝕜 i (f j)) :

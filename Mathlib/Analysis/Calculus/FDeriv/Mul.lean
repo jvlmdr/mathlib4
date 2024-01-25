@@ -529,9 +529,9 @@ theorem hasStrictFDerivAt_finset_prod_univ {x : ι → 𝔸'} :
   generalize (Finset.univ : Finset ι) = u
   induction u using Finset.induction with
   | empty => simp [hasStrictFDerivAt_const]
-  | @insert i u hi ih =>
+  | @insert i u hi IH =>
     simp only [Finset.prod_insert hi]
-    refine ((proj i).hasStrictFDerivAt.mul' ih).congr_fderiv ?_
+    refine ((proj i).hasStrictFDerivAt.mul' IH).congr_fderiv ?_
     simp only [Finset.sum_insert hi, Finset.erase_insert hi]
     rw [add_comm]
     refine congrArg₂ _ ?_ ?_
