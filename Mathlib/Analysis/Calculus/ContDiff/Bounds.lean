@@ -352,18 +352,17 @@ theorem norm_iteratedFDeriv_prod_le [NormOneClass A'] {ι : Type*} [DecidableEq 
     rw [Finset.prod_insert hi]
     have hip : i ∉ p := fun h ↦ hi <| hp i h
     rw [Sym.count_coe_fill_self_of_not_mem hip, Sym.multinomial_coe_fill_of_not_mem hip]
-    rw [Nat.cast_mul]
-    ring_nf  -- TODO: Was it just lucky that this worked?
-    refine congrArg _ (Finset.prod_congr rfl ?_)
+    suffices : ∏ j in u, ‖iteratedFDeriv 𝕜 (Multiset.count j p) (f j) x‖ =
+        ∏ j in u, ‖iteratedFDeriv 𝕜 (Multiset.count j (Sym.fill i m p)) (f j) x‖
+    · rw [this, Nat.cast_mul]
+      ring
+    refine Finset.prod_congr rfl ?_
     intro j hj
     have hji : j ≠ i := fun h ↦ hi <| by simpa [h] using hj
-    simp only [Sym.coe_fill]
-    -- simp only [Multiset.count_add]  -- Example of simp not working.
-    rw [Multiset.count_add]
-    simp only [Sym.coe_replicate]
-    rw [Multiset.count_eq_zero_of_not_mem (s := Multiset.replicate m i)]
-    · simp
-    · simp [Multiset.mem_replicate, hji]
+    rw [Sym.coe_fill, Multiset.count_add, Sym.coe_replicate]
+    rw [Multiset.count_eq_zero_of_not_mem
+      (by simp [Multiset.mem_replicate, hji] : j ∉ Multiset.replicate m i)]
+    simp
 
 end
 
