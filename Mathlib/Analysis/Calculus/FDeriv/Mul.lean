@@ -512,15 +512,8 @@ open BigOperators
 variable {ι : Type*} [DecidableEq ι] {𝔸' : Type*} [NormedCommRing 𝔸'] [NormedAlgebra 𝕜 𝔸']
   {u : Finset ι} {f : ι → E → 𝔸'} {f' : ι → E →L[𝕜] 𝔸'}
 
--- First define product of finite vector of elements in `hasFDerivAt_finset_prod_univ`.
--- Then define product of functions using composition.
--- This avoids repeating the proof for assumptions of `HasStrictFDeriv` and `HasFDerivWithinAt`.
--- It also provides the derivative for `ContinuousMultilinearMap.mkPiAlgebra`.
-
 section Fintype
 
--- Note: If we don't also assume `DecidableEq ι`, then we can get type conflicts between
--- `fun a b ↦ Subtype.instDecidableEqSubtype a b` and `fun a b ↦ Classical.propDecidable (a = b)`.
 variable [Fintype ι]
 
 -- Requires `Fintype` here for `ι → 𝔸'` to have a norm.
@@ -563,23 +556,20 @@ theorem HasFDerivAt.finset_prod_univ {x : E} (hf : ∀ i, HasFDerivAt (f i) (f' 
     HasFDerivAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) x := by
   refine (hasFDerivAt_finset_prod_univ.comp x <| hasFDerivAt_pi.mpr hf).congr_fderiv ?_
   ext m
-  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.sum_apply, ContinuousLinearMap.sum_apply]
-  rfl
+  simp [comp_apply (R₁ := 𝕜), sum_apply (R₁ := 𝕜), smul_apply]
 
 theorem HasStrictFDerivAt.finset_prod_univ {x : E} (hf : ∀ i, HasStrictFDerivAt (f i) (f' i) x) :
     HasStrictFDerivAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) x := by
   refine (hasStrictFDerivAt_finset_prod_univ.comp x <| hasStrictFDerivAt_pi.mpr hf).congr_fderiv ?_
   ext m
-  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.sum_apply, ContinuousLinearMap.sum_apply]
-  rfl
+  simp [comp_apply (R₁ := 𝕜), sum_apply (R₁ := 𝕜), smul_apply]
 
 theorem HasFDerivWithinAt.finset_prod_univ {x : E} (hf : ∀ i, HasFDerivWithinAt (f i) (f' i) s x) :
     HasFDerivWithinAt (∏ i, f i ·) (∑ i, (∏ j in Finset.univ.erase i, f j x) • f' i) s x := by
   refine HasFDerivWithinAt.congr_fderiv
     (hasFDerivAt_finset_prod_univ.comp_hasFDerivWithinAt x <| hasFDerivWithinAt_pi.mpr hf) ?_
   ext m
-  rw [ContinuousLinearMap.comp_apply, ContinuousLinearMap.sum_apply, ContinuousLinearMap.sum_apply]
-  rfl
+  simp [comp_apply (R₁ := 𝕜), sum_apply (R₁ := 𝕜), smul_apply]
 
 end Fintype
 

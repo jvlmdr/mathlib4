@@ -2346,7 +2346,7 @@ theorem prod_erase_attach [DecidableEq ι] {s : Finset ι} (f : ι → α) (i : 
   intro j _
   simp only [← Function.comp_apply (g := Subtype.val) (x := j)]
   rw [Function.update_comp_eq_of_injective _ Subtype.val_injective]
-  rw [Function.comp_def]
+  rfl
 
 end Finset
 
