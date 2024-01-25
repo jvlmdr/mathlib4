@@ -601,6 +601,11 @@ theorem filter_ne_fill [DecidableEq α] (a : α) (m : Σi : Fin (n + 1), Sym α 
       · exact fun a ha ha' => h <| ha'.symm ▸ ha)
 #align sym.filter_ne_fill Sym.filter_ne_fill
 
+theorem count_coe_fill_self_of_not_mem [DecidableEq α] {a : α} {i : Fin (n + 1)} {s : Sym α (n - i)}
+    (hx : a ∉ s) :
+    count a (fill a i s : Multiset α) = i := by
+  simp [coe_fill, coe_replicate, hx]
+
 end Sym
 
 section Equiv

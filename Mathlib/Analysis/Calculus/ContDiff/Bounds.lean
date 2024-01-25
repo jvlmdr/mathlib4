@@ -342,32 +342,17 @@ theorem norm_iteratedFDeriv_prod_le [NormOneClass A'] {ι : Type*} [DecidableEq 
     refine Finset.sum_le_sum ?_
     simp only [Finset.mem_univ, forall_true_left]
     intro m
-    -- Apply inductive hypothesis for product over `u` with `n := n - m`.
-    specialize IH hf.2 (le_trans (WithTop.coe_le_coe.mpr (n.sub_le m)) hn)
+    specialize IH hf.2 (n := n - m) (le_trans (WithTop.coe_le_coe.mpr (n.sub_le m)) hn)
     refine le_trans (mul_le_mul_of_nonneg_left IH (by simp [mul_nonneg])) ?_
     rw [Finset.mul_sum, ← Finset.sum_coe_sort]
     refine Finset.sum_le_sum ?_
-    simp only [Finset.mem_univ, forall_true_left, Subtype.forall]
+    simp only [Finset.mem_univ, forall_true_left, Subtype.forall, Finset.mem_sym_iff]
     intro p hp
     refine le_of_eq ?_
     rw [Finset.prod_insert hi]
-    have hip : i ∉ p := fun h ↦ hi <| (Finset.mem_sym_iff.mp hp) i h
-    have h_count : Multiset.count i (Sym.fill i m p : Multiset ι) = m := by
-      simp only [Sym.coe_fill, Sym.coe_replicate]
-      simp only [Multiset.count_add, Multiset.count_replicate_self]
-      rw [Multiset.count_eq_zero_of_not_mem (by simpa [Sym.mem_coe] using hip)]
-      simp
-    have h_multinomial : (Sym.fill i m p : Multiset ι).multinomial =
-        n.choose m * (p : Multiset ι).multinomial := by
-      rw [Multiset.multinomial_filter_ne i]
-      simp only [Sym.card_coe, h_count]
-      simp only [Sym.coe_fill, Sym.coe_replicate, Multiset.filter_add]
-      rw [Multiset.filter_eq_self.mpr]
-      · rw [Multiset.filter_eq_nil.mpr]
-        · simp
-        · exact fun j hj ↦ Decidable.not_not.mpr (Multiset.eq_of_mem_replicate hj).symm
-      · exact fun j hj h ↦ hip <| by simpa [h] using hj
-    rw [h_count, h_multinomial, Nat.cast_mul]
+    have hip : i ∉ p := fun h ↦ hi <| hp i h
+    rw [Sym.count_coe_fill_self_of_not_mem hip, Sym.multinomial_coe_fill_of_not_mem hip]
+    rw [Nat.cast_mul]
     ring_nf  -- TODO: Was it just lucky that this worked?
     refine congrArg _ (Finset.prod_congr rfl ?_)
     intro j hj
