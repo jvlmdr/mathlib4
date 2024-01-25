@@ -368,7 +368,7 @@ instance (n : ℕ) [Nontrivial α] : Nontrivial (Sym α (n + 1)) :=
 /-- A function `α → β` induces a function `Sym α n → Sym β n` by applying it to every element of
 the underlying `n`-tuple. -/
 def map {n : ℕ} (f : α → β) (x : Sym α n) : Sym β n :=
-  ⟨x.val.map f, by simpa [Multiset.card_map] using x.property⟩
+  ⟨x.val.map f, by simp⟩
 #align sym.map Sym.map
 
 @[simp]
