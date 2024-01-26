@@ -16,7 +16,7 @@ see the module docstring of `Mathlib/Analysis/Calculus/FDeriv/Basic.lean`.
 This file contains the usual formulas (and existence assertions) for the derivative of
 
 * multiplication of a function by a scalar function
-* multiplication of two scalar functions
+* product of finitely many scalar functions
 * taking the pointwise multiplicative inverse (i.e. `Inv.inv` or `Ring.inverse`) of a function
 -/
 
@@ -516,7 +516,6 @@ section Fintype
 
 variable [Fintype ι]
 
--- Requires `Fintype` here for `ι → 𝔸'` to have a norm.
 theorem hasStrictFDerivAt_finset_prod_univ {x : ι → 𝔸'} :
     HasStrictFDerivAt (𝕜 := 𝕜) (∏ i, · i) (∑ i, (∏ j in Finset.univ.erase i, x j) • proj i) x := by
   generalize (Finset.univ : Finset ι) = u
