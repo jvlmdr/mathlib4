@@ -569,6 +569,13 @@ lemma _root_.ContinuousLinearMap.hasTemperateGrowth (f : E →L[ℝ] F) :
     simpa [this] using .const _
   · exact (f.le_opNorm x).trans (by simp [mul_add])
 
+/-- Any Schwartz function `HasTemperateGrowth`. -/
+lemma hasTemperateGrowth (f : 𝓢(E, F)) : Function.HasTemperateGrowth f := by
+  refine ⟨f.smooth', ?_⟩
+  intro n
+  rcases f.decay' 0 n with ⟨C, hC⟩
+  exact ⟨0, C, by simpa using hC⟩
+
 variable [NormedAddCommGroup D] [MeasurableSpace D]
 
 open MeasureTheory Module
@@ -923,6 +930,10 @@ def compCLMOfContinuousLinearEquiv (g : D ≃L[ℝ] E) :
 
 @[simp] lemma compCLMOfContinuousLinearEquiv_apply (g : D ≃L[ℝ] E) (f : 𝓢(E, F)) :
     compCLMOfContinuousLinearEquiv 𝕜 g f = f ∘ g := rfl
+
+def compNegCLM : 𝓢(E, F) →L[𝕜] 𝓢(E, F) := compCLMOfContinuousLinearEquiv 𝕜 (.neg ℝ)
+
+@[simp] lemma comNegCLM_apply (f : 𝓢(E, F)) : compNegCLM 𝕜 f = f ∘ Neg.neg := rfl
 
 end Comp
 
